@@ -1,0 +1,74 @@
+{
+  "common": {
+    "appName": "Circulou",
+    "loading": "Carregando...",
+    "retry": "Tentar novamente",
+    "back": "Voltar",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "remove": "Remover",
+    "confirm": "Confirmar"
+  },
+  "search": {
+    "placeholder": "O que você está procurando?",
+    "submit": "Buscar",
+    "loadMore": "Buscar mais",
+    "empty": "Nenhum produto encontrado para \"{{term}}\".",
+    "homeTitleFeatured": "Em destaque",
+    "homeTitleCatalog": "Catálogo",
+    "filters": {
+      "title": "Filtros",
+      "store": "Loja",
+      "priceMin": "Preço mínimo",
+      "priceMax": "Preço máximo",
+      "onlyOnSale": "Apenas em promoção",
+      "clear": "Limpar filtros"
+    },
+    "sort": {
+      "label": "Ordenar por",
+      "relevance": "Relevância",
+      "priceAsc": "Menor preço",
+      "priceDesc": "Maior preço",
+      "discount": "Maior desconto",
+      "newest": "Mais recentes"
+    }
+  },
+  "cart": {
+    "title": "Carrinho",
+    "empty": "Seu carrinho está vazio.",
+    "subtotal": "Subtotal",
+    "total": "Total",
+    "checkout": "Finalizar compra",
+    "unavailable": "Indisponível",
+    "removeUnavailable": "Remover indisponíveis",
+    "deviceWarning": "O carrinho ainda não migra entre dispositivos."
+  },
+  "checkout": {
+    "title": "Checkout",
+    "address": "Endereço de entrega",
+    "addAddress": "Adicionar endereço",
+    "review": "Revisar pedido",
+    "confirmOrder": "Confirmar pedido",
+    "provisionalIdBadge": "Identificador provisório",
+    "ephemeralWarning": "Esta confirmação é efêmera — anote os identificadores antes de sair."
+  },
+  "auth": {
+    "login": "Entrar",
+    "logout": "Sair",
+    "register": "Cadastrar",
+    "email": "E-mail",
+    "password": "Senha",
+    "forgotPassword": "Esqueci minha senha",
+    "resetPassword": "Redefinir senha",
+    "changePassword": "Alterar senha",
+    "profile": "Perfil",
+    "name": "Nome"
+  },
+  "errors": {
+    "generic": "Algo deu errado. Tente novamente.",
+    "network": "Falha de conexão. Verifique sua internet.",
+    "unauthorized": "Sua sessão expirou. Faça login novamente.",
+    "notFound": "Página não encontrada.",
+    "storageQuota": "Não foi possível salvar o carrinho. Libere espaço de armazenamento."
+  }
+}
