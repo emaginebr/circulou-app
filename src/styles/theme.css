@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+/*
+ * Circulou — design tokens.
+ * Tailwind v4: tokens declarados com @theme.
+ * Cores principais herdam o tom verde original do Bootstrap override.
+ */
+@theme {
+  --color-primary: #2f7d5b;
+  --color-primary-hover: #246244;
+  --color-primary-soft: #e6f1ec;
+
+  --color-secondary: #d97706;
+  --color-secondary-hover: #b45309;
+
+  --color-success: #198754;
+  --color-info: #0d6efd;
+  --color-warning: #f59e0b;
+  --color-danger: #dc2626;
+
+  --color-page: #fafaf7;
+  --color-ink: #1f2937;
+  --color-mute: #6b7280;
+
+  --radius-sm: 0.375rem;
+  --radius: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Base */
+html,
+body {
+  background: var(--color-page);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+/* Cards Circulou — efeito hover sutil */
+.circulou-card {
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.circulou-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Spinner customizado (anima-spin do Tailwind + ring) */
+.circulou-spinner {
+  display: inline-block;
+  border: 3px solid var(--color-primary-soft);
+  border-top-color: var(--color-primary);
+  border-radius: 9999px;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

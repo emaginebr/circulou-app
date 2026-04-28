@@ -141,3 +141,6 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Specs evidence (gitignored per tasks.md T103)
+specs/**/evidence/
