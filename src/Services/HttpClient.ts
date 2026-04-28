@@ -108,4 +108,5 @@ export const apiUrl = (path: string): string => {
   return `${base}${cleaned}`;
 };
 
-export const graphqlUrl = (): string => import.meta.env.VITE_LOFN_GRAPHQL_URL ?? '';
+// O GraphQL do Lofn é sempre servido na mesma base da REST, no path /graphql.
+export const graphqlUrl = (): string => apiUrl('/graphql');

@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Circulou — Home (Mobile 360 px)</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="./tokens.css" />
+
+  <style>
+    /* Wrapper que simula viewport 360 px (mockup didático). Em produção o
+       <body> ocupa 100% e o layout responde por media queries / utilities. */
+    body { background: #2a2a2a; padding: 1.5rem 0; }
+    .device {
+      width: 360px;
+      margin: 0 auto;
+      background: var(--color-page);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      border-radius: 28px;
+      overflow: hidden;
+    }
+    .device-label {
+      text-align: center;
+      color: #999;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Container interno do mobile */
+    .m-container { padding: 0 1.25rem; }
+    .m-section { padding: 2rem 0; }
+    .m-section-tight { padding: 1.5rem 0; }
+
+    /* Header mobile compacto */
+    .m-header {
+      background: var(--color-page);
+      padding: 0.75rem 1.25rem;
+      border-bottom: 1px solid var(--color-line);
+      position: sticky; top: 0; z-index: 5;
+    }
+    .m-header-row { display: flex; align-items: center; justify-content: space-between; }
+    .m-icon-btn {
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      background: transparent; border: none;
+      color: var(--color-cedro); font-size: 1.4rem;
+      border-radius: var(--radius-sm);
+    }
+    .m-icon-btn:focus-visible { outline: 2px solid var(--color-cobre); outline-offset: 2px; }
+
+    .m-search-wrap {
+      margin-top: 0.75rem; position: relative;
+    }
+    .m-search-wrap input {
+      width: 100%; height: 44px;
+      border-radius: 999px;
+      border: 1.5px solid var(--color-line);
+      background: var(--color-surface);
+      padding: 0 1rem 0 2.5rem;
+      font-family: var(--font-sans); font-size: 0.9rem;
+      color: var(--color-tinta);
+    }
+    .m-search-wrap span {
+      position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%);
+      color: var(--color-mute);
+    }
+
+    /* Categorias scroll horizontal */
+    .m-cats {
+      display: flex; gap: 0.5rem;
+      overflow-x: auto; padding: 0.75rem 1.25rem;
+      background: var(--color-surface-warm);
+      border-bottom: 1px solid var(--color-line);
+      scrollbar-width: none;
+    }
+    .m-cats::-webkit-scrollbar { display: none; }
+    .m-chip {
+      flex-shrink: 0;
+      padding: 0.4rem 0.85rem;
+      border-radius: 999px;
+      background: var(--color-cru);
+      color: var(--color-cedro);
+      font-size: 0.8rem; font-weight: 500;
+      border: 1px solid var(--color-line);
+      white-space: nowrap;
+    }
+    .m-chip--active {
+      background: var(--color-cedro); color: var(--color-cru); border-color: var(--color-cedro);
+    }
+
+    /* Hero mobile */
+    .m-hero {
+      background: var(--color-oliva);
+      color: var(--color-cru);
+      padding: 2rem 1.25rem 2.5rem;
+      position: relative; overflow: hidden;
+    }
+    .m-hero-sun {
+      position: absolute; top: -60px; right: -50px;
+      width: 200px; height: 200px;
+      background: var(--color-ambar); opacity: 0.85;
+      clip-path: polygon(50% 0%, 60% 18%, 78% 14%, 74% 32%, 92% 36%,
+        80% 52%, 96% 64%, 78% 70%, 84% 90%, 64% 84%, 50% 100%,
+        36% 84%, 16% 90%, 22% 70%, 4% 64%, 20% 52%, 8% 36%, 26% 32%,
+        22% 14%, 40% 18%);
+    }
+    .m-hero-img {
+      margin-top: 1.5rem;
+      aspect-ratio: 4 / 5;
+      background: url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=600&auto=format&fit=crop') center/cover;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* Banners 2 colunas */
+    .m-banner-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .m-tile {
+      position: relative; aspect-ratio: 3 / 4;
+      border-radius: var(--radius); overflow: hidden;
+      background-size: cover; background-position: center;
+    }
+    .m-tile::after {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(180deg, transparent 50%, rgba(20,20,20,0.6));
+    }
+    .m-tile-content {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 0.75rem; color: var(--color-cru); z-index: 1;
+    }
+
+    /* Section header mobile */
+    .m-section-header {
+      display: flex; justify-content: space-between; align-items: end;
+      margin-bottom: 1rem;
+    }
+    .m-section-header h2 {
+      font-size: 1.5rem; line-height: 1.1;
+    }
+    .m-section-header a {
+      color: var(--color-cobre); font-weight: 600; font-size: 0.85rem;
+      flex-shrink: 0; padding: 0.5rem 0; min-height: 44px; display: flex; align-items: center;
+    }
+
+    /* Rail mobile (mesmo CSS, com cards menores) */
+    .m-rail {
+      display: flex; gap: 0.75rem;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      padding: 0 1.25rem 0.5rem;
+      margin: 0 -1.25rem;
+      scrollbar-width: none;
+    }
+    .m-rail::-webkit-scrollbar { display: none; }
+    .m-rail > * { scroll-snap-align: start; flex: 0 0 auto; }
+
+    .m-product {
+      width: 160px;
+      background: var(--color-surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--color-line);
+    }
+    .m-product .img {
+      aspect-ratio: 3 / 4;
+      background-size: cover; background-position: center;
+    }
+    .m-product .body { padding: 0.65rem 0.75rem 0.85rem; }
+    .m-product .brand-label {
+      font-family: var(--font-mono); font-size: 0.65rem;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-cedro);
+    }
+    .m-product .name {
+      font-size: 0.85rem; font-weight: 600; color: var(--color-tinta);
+      margin-top: 0.2rem; line-height: 1.25;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .m-product .price {
+      font-family: var(--font-display); color: var(--color-cobre);
+      font-size: 1rem; margin-top: 0.4rem;
+    }
+
+    /* Quero Vender mobile */
+    .m-sell {
+      background: var(--color-cobre);
+      color: var(--color-cru);
+      padding: 2rem 1.25rem;
+      position: relative; overflow: hidden;
+    }
+    .m-sell::before {
+      content: ""; position: absolute;
+      bottom: -100px; right: -80px;
+      width: 240px; height: 240px;
+      background: var(--color-ambar); opacity: 0.5;
+      border-radius: 48% 52% 38% 62% / 42% 38% 62% 58%;
+    }
+    .m-step {
+      display: flex; align-items: center; gap: 0.85rem;
+      padding: 0.75rem 0;
+    }
+    .m-step-pill {
+      width: 44px; height: 44px;
+      background: var(--color-ambar);
+      color: var(--color-cedro);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); flex-shrink: 0;
+    }
+
+    /* Propósito mobile — cards stack vertical */
+    .m-purpose { background: var(--color-cedro); color: var(--color-cru); padding: 2.5rem 1.25rem; }
+    .m-impact { background: var(--color-cobre); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 0.75rem; }
+    .m-impact-num { font-family: var(--font-display); font-size: 2.25rem; color: var(--color-ambar); line-height: 1; }
+
+    /* Footer mobile (acordeão visual de colunas) */
+    .m-footer { background: var(--color-tinta); color: var(--color-cru); padding: 2rem 1.25rem; }
+    .m-footer details { border-bottom: 1px solid rgba(245,236,229,0.1); padding: 0.85rem 0; }
+    .m-footer summary {
+      display: flex; justify-content: space-between; align-items: center;
+      list-style: none; cursor: pointer; min-height: 44px;
+      color: var(--color-cru); font-family: var(--font-mono);
+      font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .m-footer summary::-webkit-details-marker { display: none; }
+    .m-footer ul { list-style: none; padding: 0; margin: 0.75rem 0 0; display: flex; flex-direction: column; gap: 0.6rem; }
+    .m-footer a { color: var(--color-areia); font-size: 0.9rem; }
+
+    /* Sticky bottom bar — atalho a "Quero Vender" sempre visível em mobile */
+    .m-fab-bar {
+      position: sticky; bottom: 0;
+      background: rgba(245, 236, 229, 0.96);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--color-line);
+      padding: 0.75rem 1.25rem;
+      display: flex; gap: 0.5rem;
+    }
+    .m-fab-bar a {
+      flex: 1;
+      min-height: 48px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: var(--radius);
+      font-weight: 600;
+    }
+
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+
+    /* ─────────────────────────────────────────────────────────────────
+     * PARALLAX MOBILE — escopo intencionalmente restrito
+     * Em 360 px só o sol do hero ganha parallax. Demais seções ficam
+     * estáticas para preservar performance em devices low-end e evitar
+     * "tremor" desconfortável em scroll rápido com o dedo. Veja
+     * decisão registrada em README.md → seção Parallax.
+     * ─────────────────────────────────────────────────────────────── */
+    .m-hero-sun { will-change: transform; backface-visibility: hidden; }
+
+    /* Caminho A — CSS scroll-driven (Chrome/Edge mobile 115+). */
+    @supports (animation-timeline: scroll()) {
+      .m-hero-sun {
+        animation: m-hero-sun-drift linear both;
+        animation-timeline: scroll(root);
+        animation-range: 0 400px;
+      }
+      @keyframes m-hero-sun-drift {
+        to { transform: translate3d(20px, 100px, 0) rotate(-6deg); }
+      }
+    }
+
+    /* Caminho B — fallback JS controlado por html.js-parallax. */
+    html.js-parallax .m-hero-sun {
+      transform: translate3d(var(--p-x, 0px), var(--p-y, 0px), 0)
+                 rotate(var(--p-rot, 0deg));
+    }
+
+    /* prefers-reduced-motion: cancela tudo. */
+    @media (prefers-reduced-motion: reduce) {
+      .m-hero-sun {
+        animation: none !important;
+        transform: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <p class="device-label">↳ recorte mobile · viewport 360 px</p>
+
+  <div class="device">
+
+    <!-- HEADER MOBILE -->
+    <header class="m-header">
+      <div class="m-header-row">
+        <button class="m-icon-btn" aria-label="Abrir menu">☰</button>
+
+        <a href="/" style="display: flex; align-items: center; gap: 0.4rem; text-decoration: none;">
+          <span aria-hidden="true" style="
+            width: 24px; height: 24px; background: var(--color-ambar);
+            clip-path: polygon(50% 0%, 60% 18%, 78% 14%, 74% 32%, 92% 36%,
+              80% 52%, 96% 64%, 78% 70%, 84% 90%, 64% 84%, 50% 100%,
+              36% 84%, 16% 90%, 22% 70%, 4% 64%, 20% 52%, 8% 36%, 26% 32%,
+              22% 14%, 40% 18%);
+          "></span>
+          <span style="font-family: var(--font-display); color: var(--color-oliva); font-size: 1.2rem;">Circulou</span>
+        </a>
+
+        <button class="m-icon-btn" aria-label="Sacola — 0 itens" style="position: relative;">
+          🛍
+          <span aria-hidden="true" style="
+            position: absolute; top: 4px; right: 4px;
+            background: var(--color-cobre); color: var(--color-cru);
+            font-size: 0.65rem; padding: 0.05rem 0.35rem;
+            border-radius: 999px; font-weight: 700;
+            font-family: var(--font-sans);
+          ">0</span>
+        </button>
+      </div>
+
+      <div class="m-search-wrap">
+        <span aria-hidden="true">🔍</span>
+        <label for="m-q" class="sr-only">Buscar peças</label>
+        <input id="m-q" type="search" placeholder="Busque por marca, peça ou estilo…" />
+      </div>
+    </header>
+
+    <!-- CATEGORIAS HORIZONTAL -->
+    <nav class="m-cats" aria-label="Categorias">
+      <a href="#" class="m-chip m-chip--active">Tudo</a>
+      <a href="#" class="m-chip">Novas c/ etiqueta</a>
+      <a href="#" class="m-chip">Curadoria</a>
+      <a href="#" class="m-chip">Marcas</a>
+      <a href="#" class="m-chip">Last Chance</a>
+      <a href="#" class="m-chip">Feminino</a>
+      <a href="#" class="m-chip">Masculino</a>
+      <a href="#" class="m-chip">Calçados</a>
+    </nav>
+
+    <main>
+
+      <!-- HERO -->
+      <section class="m-hero" aria-labelledby="m-hero-t">
+        <div class="m-hero-sun" aria-hidden="true"></div>
+        <span class="circulou-tag" style="background: rgba(245,236,229,0.12); color: var(--color-ambar); border: 1px solid rgba(245,236,229,0.18);">
+          ✦ Outono · 2026
+        </span>
+        <h1 id="m-hero-t" style="
+          font-size: 2rem; color: var(--color-cru);
+          margin-top: 1rem; margin-bottom: 0.75rem; line-height: 1.05;
+        ">
+          Moda sustentável é o presente.
+        </h1>
+        <p style="color: var(--color-areia); font-size: 0.95rem; margin-bottom: 1.25rem;">
+          Garimpo, curadoria e propósito num só brechó.
+        </p>
+        <a href="#" class="circulou-btn-primary" style="background: var(--color-ambar); color: var(--color-cedro); width: 100%;">
+          Garimpar agora →
+        </a>
+
+        <div class="m-hero-img" role="img" aria-label="Peça em destaque do brechó"></div>
+
+        <div style="display: flex; justify-content: space-around; margin-top: 1.5rem; color: var(--color-areia); font-size: 0.8rem; text-align: center;">
+          <div><strong style="color: var(--color-ambar); font-family: var(--font-display); font-size: 1.25rem;">+12k</strong><br/>peças</div>
+          <div><strong style="color: var(--color-ambar); font-family: var(--font-display); font-size: 1.25rem;">87</strong><br/>ONGs</div>
+          <div><strong style="color: var(--color-ambar); font-family: var(--font-display); font-size: 1.25rem;">3.4t</strong><br/>tecido</div>
+        </div>
+      </section>
+
+      <!-- BANNERS SECUNDÁRIOS (2 col) -->
+      <section class="m-section-tight m-container">
+        <h2 class="sr-only">Destaques</h2>
+        <div class="m-banner-grid">
+          <a href="#" class="m-tile" style="background-image: url('https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&auto=format&fit=crop');">
+            <div class="m-tile-content">
+              <span class="circulou-tag" style="background: var(--color-ambar); color: var(--color-cedro); font-size: 0.65rem; padding: 0.2rem 0.5rem;">★ Curadoria</span>
+              <h3 style="color: var(--color-cru); font-size: 1rem; margin-top: 0.4rem;">Alfaiataria atemporal</h3>
+            </div>
+          </a>
+          <a href="#" class="m-tile" style="background-image: url('https://images.unsplash.com/photo-1551232864-3f0890e580d9?w=600&auto=format&fit=crop');">
+            <div class="m-tile-content">
+              <span class="circulou-tag" style="background: var(--color-cobre); color: var(--color-cru); font-size: 0.65rem; padding: 0.2rem 0.5rem;">Last Chance</span>
+              <h3 style="color: var(--color-cru); font-size: 1rem; margin-top: 0.4rem;">Últimas peças</h3>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- HOT NEWS RAIL -->
+      <section class="m-section m-container">
+        <header class="m-section-header">
+          <div>
+            <span class="circulou-tag" style="font-size: 0.65rem;">★ Hot News</span>
+            <h2 style="margin-top: 0.4rem;">Suéteres &amp; tricôs</h2>
+          </div>
+          <a href="#">Ver todos →</a>
+        </header>
+
+        <div class="m-rail" role="list">
+          <article class="m-product circulou-card" role="listitem">
+            <div class="img" style="background-image: url('https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&auto=format&fit=crop');"></div>
+            <div class="body">
+              <span class="brand-label">Zara</span>
+              <span class="name">Suéter caramelo</span>
+              <span class="price">R$ 89,90</span>
+            </div>
+          </article>
+          <article class="m-product circulou-card" role="listitem">
+            <div class="img" style="background-image: url('https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=400&auto=format&fit=crop');"></div>
+            <div class="body">
+              <span class="brand-label">Hering</span>
+              <span class="name">Cardigan off-white</span>
+              <span class="price">R$ 119,00</span>
+            </div>
+          </article>
+          <article class="m-product circulou-card" role="listitem">
+            <div class="img" style="background-image: url('https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&auto=format&fit=crop');"></div>
+            <div class="body">
+              <span class="brand-label">Renner</span>
+              <span class="name">Tricô oversized terracota</span>
+              <span class="price">R$ 64,90</span>
+            </div>
+          </article>
+          <article class="m-product circulou-card" role="listitem">
+            <div class="img" style="background-image: url('https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=400&auto=format&fit=crop');"></div>
+            <div class="body">
+              <span class="brand-label">Forever 21</span>
+              <span class="name">Cardigan canelado</span>
+              <span class="price">R$ 49,90</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- SELEÇÃO ALFAIATARIA — grid 2 col em mobile -->
+      <section class="m-section m-container" style="background: var(--color-surface-warm); margin-left: 0; margin-right: 0; padding-left: 1.25rem; padding-right: 1.25rem;">
+        <header class="m-section-header">
+          <div>
+            <span class="circulou-tag" style="font-size: 0.65rem;">○ Seleção</span>
+            <h2 style="margin-top: 0.4rem;">Alfaiataria</h2>
+          </div>
+          <a href="#">Ver tudo →</a>
+        </header>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <article class="m-product circulou-card" style="width: auto;">
+            <div class="img" style="background-image: url('https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400&auto=format&fit=crop');"></div>
+            <div class="body">
+              <span class="brand-label">Reserva</span>
+              <span class="name">Blazer de linho areia</span>
+              <span class="price">R$ 189,00</span>
+            </div>
+          </article>
+          <article class="m-product circulou-card" style="width: auto;">
+            <div class="img" style="background-image: url('https://images.unsplash.com/photo-1617137968427-85924c800a22?w=400&auto=format&fit=crop');"></div>
+            <div class="body">
+              <span class="brand-label">Le Lis Blanc</span>
+              <span class="name">Calça pantalona oliva</span>
+              <span class="price">R$ 149,00</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- QUERO VENDER -->
+      <section id="sell" class="m-sell">
+        <span class="circulou-tag" style="background: var(--color-cru); color: var(--color-cedro);">▲ Sacola do Bem</span>
+        <h2 style="font-size: 1.75rem; color: var(--color-cru); margin-top: 0.85rem; line-height: 1.1;">
+          Sua peça circulou. Seu guarda-roupa agradece.
+        </h2>
+        <p style="color: var(--color-areia); margin-top: 0.85rem; font-size: 0.95rem;">
+          A gente envia a sacola, você devolve com as peças, a Circulou cuida do resto.
+        </p>
+
+        <div style="position: relative; z-index: 1; margin-top: 1.25rem;">
+          <div class="m-step">
+            <div class="m-step-pill">01</div>
+            <div>
+              <strong style="color: var(--color-cru); font-size: 0.95rem;">Peça sua sacola</strong>
+              <p style="color: var(--color-areia); font-size: 0.85rem;">Grátis e entregue em casa.</p>
+            </div>
+          </div>
+          <div class="m-step">
+            <div class="m-step-pill">02</div>
+            <div>
+              <strong style="color: var(--color-cru); font-size: 0.95rem;">Encha e devolva</strong>
+              <p style="color: var(--color-areia); font-size: 0.85rem;">Coleta sem custo.</p>
+            </div>
+          </div>
+          <div class="m-step">
+            <div class="m-step-pill">03</div>
+            <div>
+              <strong style="color: var(--color-cru); font-size: 0.95rem;">Receba seu valor</strong>
+              <p style="color: var(--color-areia); font-size: 0.85rem;">Dinheiro, crédito ou doação.</p>
+            </div>
+          </div>
+        </div>
+
+        <a href="#" class="circulou-btn-primary" style="background: var(--color-cru); color: var(--color-cedro); width: 100%; margin-top: 1.5rem; position: relative; z-index: 2;">
+          Solicitar minha sacola
+        </a>
+      </section>
+
+      <!-- PROPÓSITO -->
+      <section class="m-purpose">
+        <span class="circulou-tag" style="background: var(--color-ambar); color: var(--color-cedro);">♡ Brechó do Juntos</span>
+        <h2 style="font-size: 1.75rem; color: var(--color-cru); margin-top: 0.85rem; line-height: 1.1;">
+          A moda muda quando a gente muda junto.
+        </h2>
+
+        <div style="margin-top: 1.5rem;">
+          <article class="m-impact">
+            <span class="m-impact-num">2.7M</span>
+            <h3 style="color: var(--color-cru); font-size: 1rem; margin-top: 0.4rem;">Litros de água economizados</h3>
+          </article>
+          <article class="m-impact" style="background: var(--color-oliva);">
+            <span class="m-impact-num">87</span>
+            <h3 style="color: var(--color-cru); font-size: 1rem; margin-top: 0.4rem;">ONGs parceiras</h3>
+          </article>
+          <article class="m-impact">
+            <span class="m-impact-num">3.4t</span>
+            <h3 style="color: var(--color-cru); font-size: 1rem; margin-top: 0.4rem;">Tecido salvo do lixo</h3>
+          </article>
+        </div>
+
+        <a href="#" class="circulou-btn-primary" style="background: var(--color-ambar); color: var(--color-cedro); width: 100%; margin-top: 1.5rem;">
+          Conheça as ONGs →
+        </a>
+      </section>
+
+    </main>
+
+    <!-- FOOTER MOBILE -->
+    <footer class="m-footer">
+      <div style="font-family: var(--font-display); color: var(--color-ambar); font-size: 1.4rem; margin-bottom: 0.5rem;">Circulou</div>
+      <p style="color: var(--color-areia); font-size: 0.85rem;">Brechó do juntos. Moda circular, propósito e gente que se importa.</p>
+
+      <details>
+        <summary>Úteis <span aria-hidden="true">+</span></summary>
+        <ul>
+          <li><a href="#">Home</a></li>
+          <li><a href="#">Quero vender</a></li>
+          <li><a href="#">Curadoria do Bem</a></li>
+          <li><a href="#">ONGs parceiras</a></li>
+        </ul>
+      </details>
+      <details>
+        <summary>Meu Perfil <span aria-hidden="true">+</span></summary>
+        <ul>
+          <li><a href="#">Meus pedidos</a></li>
+          <li><a href="#">Minhas sacolas</a></li>
+          <li><a href="#">Favoritos</a></li>
+        </ul>
+      </details>
+      <details>
+        <summary>Ajuda <span aria-hidden="true">+</span></summary>
+        <ul>
+          <li><a href="#">Central de ajuda</a></li>
+          <li><a href="#">Frete e entrega</a></li>
+          <li><a href="#">Fale conosco</a></li>
+        </ul>
+      </details>
+
+      <p style="color: var(--color-mute); font-size: 0.75rem; margin-top: 1.5rem;">
+        © 2026 Circulou · CNPJ 00.000.000/0001-00
+      </p>
+    </footer>
+
+    <!-- Sticky bottom bar (apenas em mobile) -->
+    <div class="m-fab-bar">
+      <a href="#sell" class="circulou-btn-primary" style="background: var(--color-cedro); color: var(--color-cru);">
+        Quero vender
+      </a>
+      <a href="#" class="circulou-btn-ghost">Comprar</a>
+    </div>
+
+  </div>
+
+  <!-- ─────────── PARALLAX — FALLBACK JS (mobile, escopo mínimo) ───────────
+       Apenas o sol do hero é alvo. Detecção idêntica ao desktop:
+       não roda se o browser suporta `animation-timeline: scroll()` ou se
+       o usuário pediu reduced-motion. Throttle por rAF, transform-only. -->
+  <script>
+  (function () {
+    'use strict';
+
+    var prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (prefersReduce.matches) return;
+    if (window.CSS && CSS.supports && CSS.supports('animation-timeline: scroll()')) return;
+
+    var sun = document.querySelector('.m-hero-sun');
+    if (!sun) return;
+
+    document.documentElement.classList.add('js-parallax');
+    sun.style.willChange = 'transform';
+
+    var ticking = false;
+    var lastY = window.scrollY;
+
+    function update() {
+      ticking = false;
+      // Curva: até 400 px de scroll, sol desce 100 px e desloca 20 px em X.
+      var s = Math.max(0, Math.min(1, lastY / 400));
+      sun.style.setProperty('--p-y', (s * 100).toFixed(1) + 'px');
+      sun.style.setProperty('--p-x', (s * 20).toFixed(1) + 'px');
+      sun.style.setProperty('--p-rot', (s * -6).toFixed(2) + 'deg');
+    }
+
+    function onScroll() {
+      lastY = window.scrollY;
+      if (!ticking) { ticking = true; requestAnimationFrame(update); }
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+
+    // Inicial síncrono (evita salto em refresh com scroll já rolado).
+    update();
+
+    prefersReduce.addEventListener('change', function (e) {
+      if (e.matches) {
+        sun.style.removeProperty('--p-y');
+        sun.style.removeProperty('--p-x');
+        sun.style.removeProperty('--p-rot');
+        document.documentElement.classList.remove('js-parallax');
+      }
+    });
+  })();
+  </script>
+</body>
+</html>

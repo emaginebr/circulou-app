@@ -5,7 +5,7 @@
 
 ## 1. Endpoints reais consumidos
 
-### 1.1 `POST {VITE_LOFN_GRAPHQL_URL}` — `stores`
+### 1.1 `POST {VITE_API_URL}/graphql` — `stores`
 
 Auth: anônimo · Implementado pelo Lofn ✅ (via GraphQL público).
 
@@ -33,7 +33,7 @@ Auth: anônimo · Implementado pelo Lofn ✅ (via GraphQL público).
 - O Circulou filtra `status === 'Active'` client-side caso o resolver não filtre por
   padrão. Volume-alvo POC < 10 lojas torna isso trivial.
 
-### 1.2 `POST {VITE_LOFN_GRAPHQL_URL}` — `storeBySlug`
+### 1.2 `POST {VITE_API_URL}/graphql` — `storeBySlug`
 
 Auth: anônimo · Implementado pelo Lofn ✅.
 

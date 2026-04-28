@@ -36,11 +36,13 @@ cp .env.example .env.local
 ### `.env.local` mínimo
 
 ```dotenv
-# URL base da API REST do Lofn
+# URL base do Lofn (REST + GraphQL).
+# REST: POST /product/search, POST /shopcart/insert, etc.
+# GraphQL: derivado para ${VITE_API_URL}/graphql — não há variável separada.
 VITE_API_URL=https://lofn.dev.example.com
 
-# URL do GraphQL público do Lofn (geralmente VITE_API_URL + /graphql, mas explicitado)
-VITE_LOFN_GRAPHQL_URL=https://lofn.dev.example.com/graphql
+# URL base da API REST do NAuth (login, register, etc.)
+VITE_NAUTH_URL=https://nauth.dev.example.com
 
 # Base path do React Router 6 (deixe em branco se servido na raiz)
 VITE_SITE_BASENAME=
@@ -173,7 +175,7 @@ remover o mock.
 
 | Problema | Diagnóstico |
 |---|---|
-| Tela em branco no `npm run dev` | Verifique `.env.local` — `VITE_API_URL` e `VITE_LOFN_GRAPHQL_URL` precisam estar definidos. |
+| Tela em branco no `npm run dev` | Verifique `.env.local` — `VITE_API_URL` e `VITE_NAUTH_URL` precisam estar definidos. O GraphQL é derivado de `${VITE_API_URL}/graphql`. |
 | 404 em todas as buscas | Confirme que o Lofn está rodando em `VITE_API_URL` e responde a `POST /product/search`. |
 | Login funciona mas o token não persiste | Verifique a chave `login-with-metamask:auth` no `localStorage`. A chave é fixada pela constituição — não renomeie. |
 | `import.meta.env.VITE_*` é `undefined` | A variável precisa estar prefixada com `VITE_` e o servidor `npm run dev` precisa ser reiniciado após editar `.env.local`. |

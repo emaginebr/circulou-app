@@ -30,7 +30,7 @@ description: "Task list for Circulou marketplace MVP"
 - [X] T004 [P] Adicionar Vitest 1.x + `@testing-library/react` + `@testing-library/user-event` + MSW; criar `C:\repos\circulou-app\vitest.config.ts` e `C:\repos\circulou-app\src\test\setup.ts`
 - [X] T005 [P] Criar a estrutura de diretórios respeitando o casing do Princípio III: `C:\repos\circulou-app\src\Contexts\`, `src\Services\`, `src\hooks\`, `src\types\`, `src\components\`, `src\pages\`, `src\i18n\`, `src\lib\`, `src\styles\`, `public\locales\pt-BR\`
 - [X] T006 Instalar dependências de domínio: `lofn-react`, `nauth-react@0.7.x`, `react-router-dom@6.x`, `bootstrap@5.x`, `i18next@25.x`, `react-i18next@latest`, `sonner`, `react-markdown`, `remark-gfm` em `C:\repos\circulou-app\package.json`
-- [X] T007 Criar `C:\repos\circulou-app\.env.example` listando `VITE_API_URL`, `VITE_LOFN_GRAPHQL_URL`, `VITE_SITE_BASENAME` (Princípio VI; sem `REACT_APP_*`)
+- [X] T007 Criar `C:\repos\circulou-app\.env.example` listando `VITE_API_URL`, `VITE_NAUTH_URL`, `VITE_SITE_BASENAME` (Princípio VI; sem `REACT_APP_*`). GraphQL do Lofn é derivado para `${VITE_API_URL}/graphql` — não há variável separada.
 - [X] T008 [P] Configurar i18next em `C:\repos\circulou-app\src\i18n\index.ts` com backend HTTP carregando `/locales/pt-BR/translation.json`; criar arquivo seed `C:\repos\circulou-app\public\locales\pt-BR\translation.json` com chaves vazias dos namespaces `common`, `search`, `cart`, `checkout`, `auth`, `errors`
 - [X] T009 [P] Importar Bootstrap 5 SCSS e tema customizado em `C:\repos\circulou-app\src\styles\theme.scss` (overrides de cores primária/secundária, raios, tipografia); importar em `src\main.tsx`
 - [X] T010 [P] Adicionar scripts npm `dev`, `build`, `preview`, `test`, `test:watch`, `lint`, `typecheck` em `C:\repos\circulou-app\package.json`
@@ -100,7 +100,7 @@ description: "Task list for Circulou marketplace MVP"
 ### Implementação para User Story 2
 
 - [X] T041 [US2] Invocar o skill `/react-architecture` para a entidade **Stores** — gera `Services/StoresService.ts`, `Contexts/StoresContext.tsx`, `hooks/useStores.ts` e registra `<StoresProvider>` em `C:\repos\circulou-app\src\main.tsx`
-- [X] T042 [P] [US2] Implementar `StoresService.listAll()` em `C:\repos\circulou-app\src\Services\StoresService.ts` chamando GraphQL `stores` via `HttpClient` em `POST {VITE_LOFN_GRAPHQL_URL}` (referenciar `contracts/store.md`); cachear em memória; filtro `status === Active` client-side
+- [X] T042 [P] [US2] Implementar `StoresService.listAll()` em `C:\repos\circulou-app\src\Services\StoresService.ts` chamando GraphQL `stores` via `HttpClient` em `POST {VITE_API_URL}/graphql` (referenciar `contracts/store.md`); cachear em memória; filtro `status === Active` client-side
 - [X] T043 [P] [US2] Implementar `StoresService.getBySlug(slug)` em `C:\repos\circulou-app\src\Services\StoresService.ts` chamando GraphQL `storeBySlug` com fragmento `categories[]` aninhado (alimenta US6 também)
 - [X] T044 [US2] Implementar `C:\repos\circulou-app\src\components\search\FiltersPanel.tsx` — controles para: dropdown "Loja" (alimentado por `useStores()`), inputs `min`/`max` (faixa de preço), checkbox "Apenas em promoção", botão "Limpar filtros" (FR-005, FR-008); **NÃO** incluir filtro de categoria (Clarification Q3)
 - [X] T045 [US2] Implementar `C:\repos\circulou-app\src\components\search\SortControl.tsx` — dropdown com opções "Relevância" (default), "Menor preço", "Maior preço", "Maior desconto", "Mais recentes" (FR-006)

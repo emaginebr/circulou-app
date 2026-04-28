@@ -18,8 +18,7 @@ Variáveis obrigatórias em `.env.local`:
 
 | Variável | Descrição |
 |---|---|
-| `VITE_API_URL` | URL base da REST do Lofn (`POST /product/search`, `POST /shopcart/insert`) |
-| `VITE_LOFN_GRAPHQL_URL` | URL do GraphQL público (`stores`, `storeBySlug`, `featuredProducts`) |
+| `VITE_API_URL` | URL base do Lofn (REST + GraphQL). A REST é consumida em `POST /product/search`, `POST /shopcart/insert`, etc.; o GraphQL público fica em `{VITE_API_URL}/graphql` (`stores`, `storeBySlug`, `featuredProducts`). |
 | `VITE_NAUTH_URL` | URL da REST do NAuth (login, register, etc.) |
 | `VITE_SITE_BASENAME` | (opcional) base path do React Router 6 |
 

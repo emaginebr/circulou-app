@@ -54,7 +54,7 @@ Avaliação contra `.specify/memory/constitution.md` v1.0.0:
 | **III. Directory Case Sensitivity (Inviolable)** | Layout em `src/Contexts/`, `src/Services/`, `src/hooks/`, `src/types/` exatamente como exigido. |
 | **IV. TypeScript & React Code Conventions** | Componentes/Interfaces PascalCase, funções/variáveis camelCase, constantes UPPER_CASE, `interface` para shape, arrow functions, `const` por padrão — aplicado em todo o `src/`. |
 | **V. Authentication & Security** | Header `Authorization: Basic {token}`; token em localStorage sob `"login-with-metamask:auth"`. Sem cookies. Sem secrets no frontend. |
-| **VI. Environment Variables (VITE_ Prefix)** | `VITE_API_URL` (REST), `VITE_LOFN_GRAPHQL_URL` (GraphQL público — derivável da REST mas explicitado para flexibilidade), `VITE_SITE_BASENAME` (opcional). Nada de `REACT_APP_`. |
+| **VI. Environment Variables (VITE_ Prefix)** | `VITE_API_URL` (Lofn REST + GraphQL — o GraphQL é derivado para `${VITE_API_URL}/graphql`), `VITE_NAUTH_URL` (REST do NAuth), `VITE_SITE_BASENAME` (opcional). Nada de `REACT_APP_`. |
 
 Stack Rules & Restrictions:
 - ✅ Vite como único bundler.
@@ -199,7 +199,7 @@ circulou-app/
 │   │   └── relevance.ts                # ranking match exato > prefixo > substring > featured > recente
 │   ├── App.tsx                         # rotas
 │   └── main.tsx                        # provider chain (Princípio I via react-architecture)
-├── .env.example                        # VITE_API_URL=, VITE_LOFN_GRAPHQL_URL=, VITE_SITE_BASENAME=
+├── .env.example                        # VITE_API_URL=, VITE_NAUTH_URL=, VITE_SITE_BASENAME= (GraphQL = ${VITE_API_URL}/graphql)
 ├── index.html
 ├── package.json
 ├── tsconfig.json
