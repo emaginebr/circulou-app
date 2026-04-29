@@ -1,6 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -12,7 +11,6 @@ const inputCls =
 const labelCls = 'block text-sm font-medium mb-1';
 
 export const ProfilePage = () => {
-  const { t } = useTranslation(['auth', 'common']);
   const { user, isAuthenticated, isLoading, updateUser, logout } = useAuth();
   const { defaultAddress, setDefault } = useAddresses();
   const [name, setName] = useState('');
@@ -40,11 +38,11 @@ export const ProfilePage = () => {
 
   return (
     <section className="max-w-xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-semibold mb-4">{t('auth:profile')}</h1>
+      <h1 className="text-2xl font-semibold mb-4">Perfil</h1>
       <form onSubmit={handleSubmit} className="mb-6">
         <div className="mb-3">
           <label htmlFor="profile-name" className={labelCls}>
-            {t('auth:name')}
+            Nome
           </label>
           <input
             id="profile-name"
@@ -56,7 +54,7 @@ export const ProfilePage = () => {
           />
         </div>
         <div className="mb-3">
-          <label className={labelCls}>{t('auth:email')}</label>
+          <label className={labelCls}>E-mail</label>
           <input
             type="email"
             className={inputCls}
@@ -70,7 +68,7 @@ export const ProfilePage = () => {
           className="inline-flex items-center px-3 py-1.5 text-sm bg-[var(--color-primary)] text-white rounded-[var(--radius)] hover:bg-[var(--color-primary-hover)] transition disabled:opacity-50"
           disabled={saving}
         >
-          {saving ? '...' : t('common:save')}
+          {saving ? '...' : 'Salvar'}
         </button>
       </form>
       <hr className="border-gray-200 my-4" />
@@ -88,14 +86,14 @@ export const ProfilePage = () => {
           to="/change-password"
           className="self-start text-[var(--color-primary)] hover:underline text-sm"
         >
-          {t('auth:changePassword')}
+          Alterar senha
         </Link>
         <button
           type="button"
           className="self-start inline-flex items-center px-2 py-1 text-xs border border-[var(--color-danger)] text-[var(--color-danger)] rounded-[var(--radius-sm)] hover:bg-[var(--color-danger)] hover:text-white transition"
           onClick={() => logout()}
         >
-          {t('auth:logout')}
+          Sair
         </button>
       </div>
     </section>

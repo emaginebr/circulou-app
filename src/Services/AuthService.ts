@@ -1,5 +1,10 @@
 import type { NAuthConfig } from 'nauth-react';
-import { AUTH_STORAGE_KEY, getStoredToken } from '@/Services/HttpClient';
+import {
+  AUTH_STORAGE_KEY,
+  TENANT_HEADER,
+  TENANT_ID,
+  getStoredToken,
+} from '@/Services/HttpClient';
 
 export const buildNAuthConfig = (): NAuthConfig => ({
   apiUrl: import.meta.env.VITE_NAUTH_URL ?? '',
@@ -7,6 +12,7 @@ export const buildNAuthConfig = (): NAuthConfig => ({
   storageType: 'localStorage',
   redirectOnUnauthorized: '/login',
   enableFingerprinting: true,
+  headers: { [TENANT_HEADER]: TENANT_ID },
 });
 
 /**

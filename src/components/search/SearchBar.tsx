@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 
 interface SearchBarProps {
   initialValue?: string;
@@ -8,40 +7,57 @@ interface SearchBarProps {
 }
 
 export const SearchBar = ({ initialValue = '', className = '' }: SearchBarProps) => {
-  const { t } = useTranslation('search');
   const [value, setValue] = useState(initialValue);
   const navigate = useNavigate();
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     const trimmed = value.trim();
-    if (!trimmed) {
-      navigate('/');
-      return;
-    }
-    navigate(`/search?q=${encodeURIComponent(trimmed)}`);
+    navigate(trimmed ? `/search?q=${encodeURIComponent(trimmed)}` : '/');
   };
 
   return (
     <form
       role="search"
-      className={`flex gap-2 ${className}`}
+      className={`relative w-full ${className}`}
       onSubmit={handleSubmit}
     >
+      <span
+        aria-hidden="true"
+        className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
+        style={{ color: 'var(--color-mute)', fontSize: '1.1rem' }}
+      >
+        🔍
+      </span>
+      <label htmlFor="header-search" className="sr-only">
+        Buscar peças
+      </label>
       <input
+        id="header-search"
         type="search"
-        className="flex-1 rounded-[var(--radius)] border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-        placeholder={t('placeholder')}
         value={value}
         onChange={e => setValue(e.target.value)}
-        aria-label={t('placeholder')}
+        placeholder="Busque por marca, peça ou estilo…"
+        className="w-full"
+        style={{
+          height: 44,
+          borderRadius: 999,
+          border: '1.5px solid var(--color-line)',
+          background: 'var(--color-surface)',
+          padding: '0 1rem 0 2.75rem',
+          fontFamily: 'var(--font-sans)',
+          color: 'var(--color-tinta)',
+          outline: 'none',
+        }}
+        onFocus={e => {
+          e.currentTarget.style.borderColor = 'var(--color-oliva)';
+          e.currentTarget.style.boxShadow = '0 0 0 3px rgba(74, 75, 44, 0.18)';
+        }}
+        onBlur={e => {
+          e.currentTarget.style.borderColor = 'var(--color-line)';
+          e.currentTarget.style.boxShadow = 'none';
+        }}
       />
-      <button
-        type="submit"
-        className="inline-flex items-center px-4 py-2 bg-[var(--color-primary)] text-white text-sm rounded-[var(--radius)] hover:bg-[var(--color-primary-hover)] transition"
-      >
-        {t('submit')}
-      </button>
     </form>
   );
 };

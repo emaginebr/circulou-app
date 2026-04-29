@@ -1,15 +1,18 @@
 import { useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useProducts } from '@/hooks/useProducts';
 import { useStores } from '@/hooks/useStores';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ErrorState } from '@/components/ui/ErrorState';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { ProductGrid } from '@/components/product/ProductGrid';
+import { HomeHero } from '@/components/home/HomeHero';
+import { HomeFeatureBanners } from '@/components/home/HomeFeatureBanners';
+import { HomeProductRail } from '@/components/home/HomeProductRail';
+import { HomeEditorialBanner } from '@/components/home/HomeEditorialBanner';
+import { HomeProductGridSection } from '@/components/home/HomeProductGridSection';
+import { HomeSellCta } from '@/components/home/HomeSellCta';
+import { HomePurpose } from '@/components/home/HomePurpose';
 
 export const HomePage = () => {
-  const { t } = useTranslation('search');
-  const { searchPage, homeTitleKey, loading, error, loadHome, clearError } = useProducts();
+  const { searchPage, loading, error, loadHome, clearError } = useProducts();
   const { storesById } = useStores();
 
   useEffect(() => {
@@ -28,13 +31,23 @@ export const HomePage = () => {
       />
     );
   }
-  if (!searchPage || searchPage.items.length === 0) {
-    return <EmptyState title={t(homeTitleKey)} description="Sem produtos no momento." />;
-  }
+
+  // Produtos reais distribuídos entre as fileiras (rail + grid).
+  // Não inventamos fakes: se o catálogo estiver vazio, ocultamos as
+  // seções de produto e mantemos o fluxo editorial da home.
+  const items = searchPage?.items ?? [];
+  const railItems = items.slice(0, 6);
+  const gridItems = items.slice(6, 14);
+
   return (
-    <section className="max-w-7xl mx-auto px-4 py-4">
-      <h1 className="text-2xl font-semibold mb-4">{t(homeTitleKey)}</h1>
-      <ProductGrid products={searchPage.items} storesById={storesById} />
-    </section>
+    <>
+      <HomeHero />
+      <HomeFeatureBanners />
+      <HomeProductRail products={railItems} storesById={storesById} />
+      <HomeEditorialBanner />
+      <HomeProductGridSection products={gridItems} storesById={storesById} />
+      <HomeSellCta />
+      <HomePurpose />
+    </>
   );
 };

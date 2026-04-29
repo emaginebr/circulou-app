@@ -1,33 +1,90 @@
 @import "tailwindcss";
 
 /*
- * Circulou — design tokens.
- * Tailwind v4: tokens declarados com @theme.
- * Cores principais herdam o tom verde original do Bootstrap override.
+ * Circulou — design tokens (Tailwind v4 @theme).
+ * Paleta oficial extraída de docs/images/cores.jpg, sincronizada com
+ * docs/design/home/tokens.css (mockup standalone).
+ *
+ * Direção criativa: editorial retrô-folk — Alfa Slab One (display chubby),
+ * DM Sans (body) e DM Mono (rótulos). Trio de impacto: oliva + cobre + âmbar.
  */
 @theme {
-  --color-primary: #2f7d5b;
-  --color-primary-hover: #246244;
-  --color-primary-soft: #e6f1ec;
+  /* ── Paleta bruta da marca ─────────────────────────────────── */
+  --color-oliva: #4a4b2c;
+  --color-oliva-deep: #353623;
+  --color-oliva-soft: #e9ead9;
 
-  --color-secondary: #d97706;
-  --color-secondary-hover: #b45309;
+  --color-ambar: #d69543;
+  --color-ambar-soft: #f5dfb6;
 
-  --color-success: #198754;
-  --color-info: #0d6efd;
-  --color-warning: #f59e0b;
-  --color-danger: #dc2626;
+  --color-cedro: #4d2801;
+  --color-cobre: #ae531a;
+  --color-cobre-hover: #8a3f10;
 
-  --color-page: #fafaf7;
-  --color-ink: #1f2937;
-  --color-mute: #6b7280;
+  --color-areia: #e6d2ad;
+  --color-areia-soft: #efe3c7;
 
-  --radius-sm: 0.375rem;
-  --radius: 0.5rem;
-  --radius-lg: 0.75rem;
+  --color-cru: #f5ece5;
+  --color-cru-deep: #ebe0d5;
 
-  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto,
+  --color-tinta: #141414;
+
+  /* ── Tokens semânticos (consumidos por componentes) ───────── */
+  --color-primary: #4a4b2c;
+  --color-primary-hover: #353623;
+  --color-primary-soft: #e9ead9;
+
+  --color-secondary: #d69543;
+  --color-secondary-hover: #b97a2c;
+  --color-secondary-soft: #f5dfb6;
+
+  --color-accent: #ae531a;
+  --color-accent-hover: #8a3f10;
+
+  --color-success: #4a4b2c;
+  --color-info: #4d2801;
+  --color-warning: #d69543;
+  --color-danger: #ae531a;
+
+  --color-page: #f5ece5;
+  --color-surface: #ffffff;
+  --color-surface-warm: #efe3c7;
+  --color-ink: #141414;
+  --color-ink-soft: #4d2801;
+  --color-mute: #8a7e6f;
+  --color-line: #d9cdb8;
+
+  /* ── Tipografia ────────────────────────────────────────────── */
+  --font-display: "Alfa Slab One", "Frijole", "Cooper Black", Georgia, serif;
+  --font-sans: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* ── Escala tipográfica fluid ──────────────────────────────── */
+  --text-display-xl: clamp(2.5rem, 6vw, 4.5rem);
+  --text-display-lg: clamp(2rem, 4.5vw, 3.25rem);
+  --text-display-md: clamp(1.5rem, 3vw, 2.25rem);
+  --text-display-sm: 1.25rem;
+  --text-body-lg: 1.125rem;
+  --text-body: 1rem;
+  --text-body-sm: 0.875rem;
+  --text-caption: 0.75rem;
+
+  /* ── Raio (orgânico, não totalmente quadrado) ──────────────── */
+  --radius-sm: 0.5rem;
+  --radius: 0.75rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 2rem;
+  --radius-blob: 48% 52% 41% 59% / 38% 47% 53% 62%;
+
+  /* ── Sombra quente (não cinza puro) ─────────────────────────── */
+  --shadow-sm: 0 1px 2px rgba(77, 40, 1, 0.08);
+  --shadow: 0 4px 16px rgba(77, 40, 1, 0.10);
+  --shadow-lg: 0 12px 32px rgba(77, 40, 1, 0.14);
+
+  /* ── Espaçamento de seção ───────────────────────────────────── */
+  --space-section: clamp(3rem, 7vw, 6rem);
+  --space-section-tight: clamp(2rem, 4vw, 3.5rem);
 }
 
 /* Base */
@@ -36,27 +93,267 @@ body {
   background: var(--color-page);
   color: var(--color-ink);
   font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Cards Circulou — efeito hover sutil */
+/* Headings sempre na fonte display */
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+  color: var(--color-cedro);
+  margin: 0;
+}
+
+/* ── Helpers Circulou (consumidos pelos componentes da Home) ─── */
+
 .circulou-card {
-  transition: transform 120ms ease, box-shadow 120ms ease;
+  transition: transform 160ms ease, box-shadow 160ms ease;
 }
 .circulou-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+.circulou-card:focus-within {
+  outline: 2px solid var(--color-cobre);
+  outline-offset: 3px;
 }
 
-/* Spinner customizado (anima-spin do Tailwind + ring) */
+.circulou-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: var(--color-oliva-soft);
+  color: var(--color-oliva);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.circulou-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius);
+  background: var(--color-cedro);
+  color: var(--color-cru);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: background 150ms ease, transform 100ms ease;
+}
+.circulou-btn-primary:hover {
+  background: var(--color-cobre);
+}
+.circulou-btn-primary:active {
+  transform: translateY(1px);
+}
+.circulou-btn-primary:focus-visible {
+  outline: 3px solid var(--color-ambar);
+  outline-offset: 2px;
+}
+
+.circulou-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.7rem 1.4rem;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--color-cedro);
+  color: var(--color-cedro);
+  background: transparent;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+.circulou-btn-ghost:hover {
+  background: var(--color-cedro);
+  color: var(--color-cru);
+}
+
+/* Spinner (compatibilidade com componentes existentes) */
 .circulou-spinner {
   display: inline-block;
+  width: 24px;
+  height: 24px;
   border: 3px solid var(--color-primary-soft);
   border-top-color: var(--color-primary);
   border-radius: 9999px;
-  animation: spin 0.8s linear infinite;
+  animation: circulou-spin 0.8s linear infinite;
 }
-@keyframes spin {
+@keyframes circulou-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Forma orgânica decorativa — "sol" do logo */
+.circulou-blob {
+  background: var(--color-ambar);
+  border-radius: var(--radius-blob);
+}
+
+/* Scroll horizontal de produtos (CSS-only com snap) */
+.circulou-rail {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 1rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+  padding-bottom: 0.5rem;
+}
+.circulou-rail > * {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
+/* ── Parallax — caminho A: CSS scroll-driven ───────────────────
+ * Os keyframes ficam no useParallax.ts via classe utilitária.
+ * Aqui declaramos apenas o suporte a CSS variables consumidas
+ * pelo caminho B (fallback JS).
+ */
+html.js-parallax .parallax-hero-sun {
+  transform: translate3d(var(--p-x, 0px), var(--p-y, 0px), 0)
+    rotate(var(--p-rot, 0deg));
+}
+html.js-parallax .parallax-hero-blob {
+  transform: translate3d(var(--p-x, 0px), var(--p-y, 0px), 0);
+}
+html.js-parallax .parallax-hero-text {
+  transform: translate3d(0, var(--p-y, 0px), 0);
+  opacity: var(--p-opacity, 1);
+}
+html.js-parallax .parallax-hero-photo {
+  transform: translate3d(0, var(--p-y, 0px), 0) rotate(-1.5deg);
+}
+html.js-parallax .parallax-editorial {
+  transform: translate3d(0, var(--p-y, 0px), 0);
+}
+html.js-parallax .parallax-sell-blob {
+  transform: translate3d(var(--p-x, 0px), var(--p-y, 0px), 0);
+}
+
+/* ── Parallax — caminho A: CSS scroll-driven (Chrome/Edge 115+) ── */
+@supports (animation-timeline: scroll()) {
+  .parallax-hero-sun {
+    animation: circulou-hero-sun-drift linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 600px;
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+  @keyframes circulou-hero-sun-drift {
+    to {
+      transform: translate3d(40px, 180px, 0) rotate(-8deg);
+    }
+  }
+
+  .parallax-hero-blob {
+    animation: circulou-hero-blob-drift linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 600px;
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+  @keyframes circulou-hero-blob-drift {
+    to {
+      transform: translate3d(-60px, -120px, 0);
+    }
+  }
+
+  .parallax-hero-text {
+    animation: circulou-hero-text-fade linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 500px;
+    will-change: transform, opacity;
+  }
+  @keyframes circulou-hero-text-fade {
+    to {
+      transform: translate3d(0, -40px, 0);
+      opacity: 0.55;
+    }
+  }
+
+  .parallax-hero-photo {
+    animation: circulou-hero-photo-rise linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 600px;
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+  @keyframes circulou-hero-photo-rise {
+    to {
+      transform: translate3d(0, -60px, 0) rotate(-1.5deg);
+    }
+  }
+
+  .parallax-editorial {
+    animation: circulou-editorial-parallax linear both;
+    animation-timeline: view();
+    animation-range: entry 0% exit 100%;
+    will-change: transform;
+  }
+  @keyframes circulou-editorial-parallax {
+    from {
+      transform: translate3d(0, 60px, 0);
+    }
+    to {
+      transform: translate3d(0, -60px, 0);
+    }
+  }
+
+  .parallax-sell-blob {
+    animation: circulou-sell-blob-drift linear both;
+    animation-timeline: view();
+    animation-range: entry 0% exit 100%;
+    will-change: transform;
+  }
+  @keyframes circulou-sell-blob-drift {
+    from {
+      transform: translate3d(40px, 80px, 0);
+    }
+    to {
+      transform: translate3d(-40px, -80px, 0);
+    }
+  }
+}
+
+/* ── prefers-reduced-motion: cancela parallax e transições ───── */
+@media (prefers-reduced-motion: reduce) {
+  .parallax-hero-sun,
+  .parallax-hero-blob,
+  .parallax-hero-text,
+  .parallax-hero-photo,
+  .parallax-editorial,
+  .parallax-sell-blob {
+    animation: none !important;
+    transform: none !important;
+    opacity: initial !important;
+  }
+  .circulou-card,
+  .circulou-btn-primary,
+  .circulou-btn-ghost {
+    transition: none !important;
   }
 }

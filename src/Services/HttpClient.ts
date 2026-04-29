@@ -1,5 +1,6 @@
 // Wrapper sobre fetch com:
 // - Header Authorization: Basic {token} lido de localStorage["login-with-metamask:auth"] (Princípio V).
+// - Header X-Tenant-Id em toda requisição, lido de VITE_TENANT_ID (default "emagine").
 // - Serialização JSON automática.
 // - AbortSignal pass-through.
 // - Mapeamento de erros HTTP para LofnApiError.
@@ -7,6 +8,9 @@
 
 export const AUTH_STORAGE_KEY = 'login-with-metamask:auth';
 export const AUTH_EXPIRED_EVENT = 'auth:expired';
+export const TENANT_HEADER = 'X-Tenant-Id';
+export const TENANT_ID =
+  (import.meta.env.VITE_TENANT_ID as string | undefined) ?? 'emagine';
 
 export class LofnApiError extends Error {
   override readonly name = 'LofnApiError';
@@ -47,6 +51,7 @@ const request = async <T>(
 ): Promise<T> => {
   const headers: Record<string, string> = {
     Accept: 'application/json',
+    [TENANT_HEADER]: TENANT_ID,
     ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
     ...(options.skipAuth ? {} : buildAuthHeader()),
     ...(options.headers ?? {}),

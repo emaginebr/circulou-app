@@ -1,10 +1,8 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { I18nextProvider } from 'react-i18next';
 import { NAuthProvider } from 'nauth-react';
 import { Toaster } from 'sonner';
 
-import i18n from '@/i18n';
 import { App } from '@/App';
 import { AppErrorBoundary } from '@/components/ui/AppErrorBoundary';
 import { ProductsProvider } from '@/Contexts/ProductsContext';
@@ -21,16 +19,14 @@ if (!rootEl) {
 createRoot(rootEl).render(
   <StrictMode>
     <AppErrorBoundary>
-      <I18nextProvider i18n={i18n}>
-        <NAuthProvider config={buildNAuthConfig()}>
-          <StoresProvider>
-            <ProductsProvider>
-              <App />
-            </ProductsProvider>
-          </StoresProvider>
-        </NAuthProvider>
-        <Toaster position="top-right" richColors closeButton />
-      </I18nextProvider>
+      <NAuthProvider config={buildNAuthConfig()}>
+        <StoresProvider>
+          <ProductsProvider>
+            <App />
+          </ProductsProvider>
+        </StoresProvider>
+      </NAuthProvider>
+      <Toaster position="top-right" richColors closeButton />
     </AppErrorBoundary>
   </StrictMode>,
 );

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useStores } from '@/hooks/useStores';
 import type { FilterState } from '@/types/search';
 
@@ -10,7 +9,6 @@ interface FiltersPanelProps {
 }
 
 export const FiltersPanel = ({ value, onChange, onClear }: FiltersPanelProps) => {
-  const { t } = useTranslation('search');
   const { stores } = useStores();
   const [minLocal, setMinLocal] = useState<string>(
     value.priceMin !== null && value.priceMin !== undefined ? String(value.priceMin) : '',
@@ -34,13 +32,13 @@ export const FiltersPanel = ({ value, onChange, onClear }: FiltersPanelProps) =>
   return (
     <aside
       className="bg-white border border-gray-200 rounded-[var(--radius)] p-4 mb-4"
-      aria-label={t('filters.title')}
+      aria-label="Filtros"
     >
-      <h2 className="text-base font-semibold mb-3">{t('filters.title')}</h2>
+      <h2 className="text-base font-semibold mb-3">Filtros</h2>
 
       <div className="mb-3">
         <label htmlFor="filter-store" className="block text-sm font-medium mb-1">
-          {t('filters.store')}
+          Loja
         </label>
         <select
           id="filter-store"
@@ -61,28 +59,28 @@ export const FiltersPanel = ({ value, onChange, onClear }: FiltersPanelProps) =>
 
       <fieldset className="mb-3">
         <legend className="block text-sm font-medium mb-1">
-          {t('filters.priceMin')} / {t('filters.priceMax')}
+          Preço mínimo / Preço máximo
         </legend>
         <div className="flex gap-2">
           <input
             type="number"
             className={inputCls}
-            placeholder={t('filters.priceMin')}
+            placeholder="Preço mínimo"
             min={0}
             value={minLocal}
             onChange={e => setMinLocal(e.target.value)}
             onBlur={applyPrice}
-            aria-label={t('filters.priceMin')}
+            aria-label="Preço mínimo"
           />
           <input
             type="number"
             className={inputCls}
-            placeholder={t('filters.priceMax')}
+            placeholder="Preço máximo"
             min={0}
             value={maxLocal}
             onChange={e => setMaxLocal(e.target.value)}
             onBlur={applyPrice}
-            aria-label={t('filters.priceMax')}
+            aria-label="Preço máximo"
           />
         </div>
       </fieldset>
@@ -94,7 +92,7 @@ export const FiltersPanel = ({ value, onChange, onClear }: FiltersPanelProps) =>
           checked={value.onlyOnSale ?? false}
           onChange={e => onChange({ onlyOnSale: e.target.checked })}
         />
-        {t('filters.onlyOnSale')}
+        Apenas em promoção
       </label>
 
       <button
@@ -106,7 +104,7 @@ export const FiltersPanel = ({ value, onChange, onClear }: FiltersPanelProps) =>
           onClear();
         }}
       >
-        {t('filters.clear')}
+        Limpar filtros
       </button>
     </aside>
   );

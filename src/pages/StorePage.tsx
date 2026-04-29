@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { useProducts } from '@/hooks/useProducts';
 import { useStores } from '@/hooks/useStores';
 import { useCategories } from '@/hooks/useCategories';
@@ -20,7 +19,6 @@ import type { FilterState } from '@/types/search';
 import { PAGE_SIZE } from '@/lib/pagination';
 
 export const StorePage = () => {
-  const { t } = useTranslation('search');
   const { storeSlug = '' } = useParams();
   const { params, setFilters, setSort, reset } = useUrlSearchState();
   const [searchParams] = useSearchParams();
@@ -171,7 +169,7 @@ export const StorePage = () => {
             />
           ) : null}
           {!loading && !error && (!searchPage || searchPage.items.length === 0) ? (
-            <EmptyState title={t('empty', { term: params.q || store.name })} />
+            <EmptyState title={`Nenhum produto encontrado para "${params.q || store.name}".`} />
           ) : null}
           {searchPage && searchPage.items.length > 0 ? (
             <>

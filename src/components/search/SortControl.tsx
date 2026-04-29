@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next';
 import type { SortBy } from '@/types/search';
 
 interface SortControlProps {
@@ -6,19 +5,17 @@ interface SortControlProps {
   onChange: (next: SortBy) => void;
 }
 
-const OPTIONS: { value: SortBy; key: string }[] = [
-  { value: 'relevance', key: 'sort.relevance' },
-  { value: 'priceAsc', key: 'sort.priceAsc' },
-  { value: 'priceDesc', key: 'sort.priceDesc' },
-  { value: 'discount', key: 'sort.discount' },
-  { value: 'newest', key: 'sort.newest' },
+const OPTIONS: { value: SortBy; label: string }[] = [
+  { value: 'relevance', label: 'Relevância' },
+  { value: 'priceAsc', label: 'Menor preço' },
+  { value: 'priceDesc', label: 'Maior preço' },
+  { value: 'discount', label: 'Maior desconto' },
+  { value: 'newest', label: 'Mais recentes' },
 ];
 
-export const SortControl = ({ value, onChange }: SortControlProps) => {
-  const { t } = useTranslation('search');
-  return (
+export const SortControl = ({ value, onChange }: SortControlProps) => (
     <label className="inline-flex items-center gap-2 text-sm">
-      <span className="text-[var(--color-mute)]">{t('sort.label')}:</span>
+      <span className="text-[var(--color-mute)]">Ordenar por:</span>
       <select
         className="rounded-[var(--radius-sm)] border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
         value={value}
@@ -26,10 +23,9 @@ export const SortControl = ({ value, onChange }: SortControlProps) => {
       >
         {OPTIONS.map(o => (
           <option key={o.value} value={o.value}>
-            {t(o.key)}
+            {o.label}
           </option>
         ))}
       </select>
     </label>
   );
-};

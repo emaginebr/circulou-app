@@ -20,6 +20,7 @@ Variáveis obrigatórias em `.env.local`:
 |---|---|
 | `VITE_API_URL` | URL base do Lofn (REST + GraphQL). A REST é consumida em `POST /product/search`, `POST /shopcart/insert`, etc.; o GraphQL público fica em `{VITE_API_URL}/graphql` (`stores`, `storeBySlug`, `featuredProducts`). |
 | `VITE_NAUTH_URL` | URL da REST do NAuth (login, register, etc.) |
+| `VITE_TENANT_ID` | (opcional) Identificador do tenant. Default `"emagine"`. Enviado no header `X-Tenant-Id` em toda requisição (Lofn + NAuth). |
 | `VITE_SITE_BASENAME` | (opcional) base path do React Router 6 |
 
 ## Scripts
@@ -40,10 +41,10 @@ Variáveis obrigatórias em `.env.local`:
 - **Auth**: `nauth-react` 0.7.x — token em `localStorage["login-with-metamask:auth"]`
 - **Domínio Lofn**: `lofn-react` (tipos re-exportados em `src/types/`)
 - **Estado**: Context API por entidade (`Products`, `Stores`, `Cart`, `Addresses`, `Categories`)
-- **i18n**: i18next 25 com `pt-BR` (chaves em `public/locales/pt-BR/translation.json`)
-- **Design tokens**: `src/styles/theme.css` define paleta, raios e fontes via `@theme` (Tailwind v4) — consumir em componentes via `var(--color-primary)`, `rounded-[var(--radius)]`, etc.
+- **Idioma**: pt-BR único, strings hard-coded no JSX. Sem i18next (constituição v3.0.0, Princípio VII).
+- **Design tokens**: `src/styles/theme.css` define paleta da marca (oliva/âmbar/cedro/cobre/areia/cru), tipografia (Alfa Slab One + DM Sans + DM Mono), raios e fontes via `@theme` (Tailwind v4) — consumir em componentes via `var(--color-primary)`, `rounded-[var(--radius)]`, etc.
 
-A constituição em `.specify/memory/constitution.md` (v2.0.0) define os invariantes
+A constituição em `.specify/memory/constitution.md` (v3.0.0) define os invariantes
 do projeto. Casing dos diretórios:
 
 | Diretório | Casing | Motivo |

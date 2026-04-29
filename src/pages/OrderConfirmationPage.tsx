@@ -1,6 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import type { OrderConfirmation } from '@/types/order';
 import { formatBRL } from '@/lib/currency';
@@ -10,7 +9,6 @@ interface LocationStateWithConfirmation {
 }
 
 export const OrderConfirmationPage = () => {
-  const { t } = useTranslation('checkout');
   const location = useLocation();
   const state = location.state as LocationStateWithConfirmation | null;
   const confirmation = state?.confirmation;
@@ -34,7 +32,7 @@ export const OrderConfirmationPage = () => {
           className="bg-yellow-50 border border-yellow-200 text-yellow-900 rounded-[var(--radius)] p-3 text-sm mb-0"
           role="status"
         >
-          {t('ephemeralWarning')}
+          Esta confirmação é efêmera — anote os identificadores antes de sair.
         </p>
       </header>
 
@@ -48,7 +46,7 @@ export const OrderConfirmationPage = () => {
                   <header className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
                     <strong>{g.store.name}</strong>
                     <span className="inline-block px-2 py-0.5 text-xs rounded bg-[var(--color-warning)] text-white">
-                      {t('provisionalIdBadge')}
+                      Identificador provisório
                     </span>
                   </header>
                   <div className="p-4">

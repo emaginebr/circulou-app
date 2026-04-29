@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/hooks/useCart';
@@ -14,7 +13,6 @@ import type { Address } from '@/types/address';
 import type { CartScope } from '@/types/cart';
 
 export const CheckoutPage = () => {
-  const { t } = useTranslation('checkout');
   const navigate = useNavigate();
   const { user, isAuthenticated, isLoading } = useAuth();
   const { items, productsById, refresh: refreshCart } = useCart();
@@ -81,15 +79,15 @@ export const CheckoutPage = () => {
 
   return (
     <section className="max-w-7xl mx-auto px-4 py-4">
-      <h1 className="text-2xl font-semibold mb-4">{t('title')}</h1>
+      <h1 className="text-2xl font-semibold mb-4">Checkout</h1>
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-12 lg:col-span-7">
-          <h2 className="text-lg font-semibold mb-3">{t('address')}</h2>
+          <h2 className="text-lg font-semibold mb-3">Endereço de entrega</h2>
           <AddressPicker selectedId={selectedAddressId} onSelect={setSelectedAddressId} />
           {selectedAddress ? (
             <>
               <hr className="border-gray-200 my-4" />
-              <h2 className="text-lg font-semibold mb-3">{t('review')}</h2>
+              <h2 className="text-lg font-semibold mb-3">Revisar pedido</h2>
               <OrderReview
                 items={items}
                 productsById={productsById}
@@ -108,7 +106,7 @@ export const CheckoutPage = () => {
                 onClick={() => void handleConfirm()}
                 disabled={!selectedAddress || submitting || validating}
               >
-                {submitting || validating ? '...' : t('confirmOrder')}
+                {submitting || validating ? '...' : 'Confirmar pedido'}
               </button>
               <small className="block text-center text-[var(--color-mute)] mt-2">
                 Identificadores de pedido são provisórios (LOFN-G11).

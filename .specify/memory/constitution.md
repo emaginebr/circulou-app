@@ -1,26 +1,28 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 2.0.0 → 2.1.0
-Bump rationale: MINOR — Adicionada nova restrição de produto (Princípio VII:
-Single Locale — Português pt-BR). Nenhum princípio existente foi removido ou
-redefinido; i18next continua na stack como camada de gestão de strings, mas o
-site fica restrito a um único idioma. Bump MINOR conforme política.
+Version change: 2.1.0 → 3.0.0
+Bump rationale: MAJOR — Princípio II teve uma biblioteca mandatória removida
+(i18next 25.x) e Princípio VII teve seu mecanismo redefinido: strings ficam
+hard-coded em pt-BR diretamente nos componentes em vez de passar por i18next.
+Mudança backwards-incompatible: código existente que usa `useTranslation` /
+`t('...')` deve ser refatorado.
 
-Modified principles: nenhum (II permanece como em 2.0.0).
-Added sections:
-  - Princípio VII: Single Locale — Português (pt-BR).
-  - Item correspondente em Stack Rules & Restrictions.
-  - Item correspondente no Contribution Workflow & Checklist.
+Modified principles:
+  - II. Approved Frontend Stack — i18next 25.x removido.
+  - VII. Single Locale — Português (pt-BR) — exige strings hard-coded; i18next
+    proibido como dependência do app.
+
+Added sections: none (apenas atualizações)
 Removed sections: none
 
 Templates requiring updates:
   ✅ .specify/templates/plan-template.md       — Genérico; sem ajuste.
   ✅ .specify/templates/spec-template.md       — Genérico; sem ajuste.
   ✅ .specify/templates/tasks-template.md      — Genérico; sem ajuste.
-  ✅ specs/001-circulou-marketplace/plan.md    — i18n descrito como pt-BR único; sem ajuste necessário.
-  ✅ CLAUDE.md                                  — Sem referência a multi-idioma; sem ajuste.
-  ✅ README.md                                  — Sem referência a multi-idioma; sem ajuste.
+  ⚠ specs/001-circulou-marketplace/plan.md    — Atualizar referência a i18next.
+  ⚠ CLAUDE.md                                  — Atualizar Active Technologies.
+  ⚠ README.md                                  — Atualizar stack.
 
 Follow-up TODOs: nenhum.
 -->
@@ -53,7 +55,6 @@ The following stack is fixed and MUST be used as specified:
 | Vite            | 6.x      | Build toolchain                           |
 | Tailwind CSS    | 4.x      | Sistema de utilidades + design tokens     |
 | `@tailwindcss/vite` | 4.x  | Plugin Vite oficial do Tailwind           |
-| i18next         | 25.x     | Gestão centralizada de strings (pt-BR)    |
 | Axios           | 1.x      | HTTP client (legado)                      |
 | Fetch API       | Nativo   | HTTP client (novos serviços)              |
 
@@ -129,38 +130,42 @@ shipped to the browser is public, so secrets belong on the backend only.
 All frontend environment variables MUST use the `VITE_` prefix and be accessed via
 `import.meta.env.VITE_*`. The legacy `REACT_APP_` prefix is forbidden.
 
-| Variável             | Obrigatória | Descrição                               |
-|----------------------|-------------|-----------------------------------------|
-| `VITE_API_URL`       | Sim         | URL base da API backend                 |
-| `VITE_SITE_BASENAME` | Não         | Base path do React Router               |
+| Variável             | Obrigatória | Descrição                                                 |
+|----------------------|-------------|-----------------------------------------------------------|
+| `VITE_API_URL`       | Sim         | URL base da API backend (Lofn — REST + GraphQL)           |
+| `VITE_NAUTH_URL`     | Sim         | URL base da API REST do NAuth                             |
+| `VITE_TENANT_ID`     | Não         | Identificador do tenant. Default `"emagine"`. Enviado no header `X-Tenant-Id` em toda requisição. |
+| `VITE_SITE_BASENAME` | Não         | Base path do React Router                                 |
 
 **Rationale**: Vite only exposes variables prefixed with `VITE_` to client code; any
 other prefix silently produces `undefined` at runtime, leading to broken builds in
 non-dev environments.
 
-### VII. Single Locale — Português (pt-BR)
+### VII. Single Locale — Português (pt-BR), Strings Hard-Coded
 
 O site é **monolíngue em pt-BR**. Não existe seletor de idioma, fallback para inglês,
 nem rotas/URLs por idioma. Toda string visível ao usuário (UI, mensagens de erro,
-e-mails de notificação gerados no frontend) MUST estar em português brasileiro.
+e-mails de notificação gerados no frontend) MUST estar em português brasileiro,
+**escrita diretamente nos componentes JSX/TSX** — sem camada de tradução.
 
 Regras operacionais:
 
-- O bundle de tradução `public/locales/pt-BR/translation.json` é o **único** locale
-  carregado. Outros diretórios (`en`, `es`, `pt-PT`, …) MUST NOT ser criados.
-- `i18next` permanece como mecanismo de centralização de strings (chaves estáveis,
-  pluralização, interpolação) — mas configurado com `lng: 'pt-BR'` fixo e
-  `fallbackLng: 'pt-BR'`. Não habilitar `i18next-browser-languagedetector` nem
-  `i18next-http-backend` para múltiplos locales.
+- Bibliotecas de internacionalização (`i18next`, `react-i18next`, `i18next-http-backend`,
+  `i18next-browser-languagedetector`, `react-intl`, `formatjs`, etc.) MUST NOT ser
+  dependências do app. Removê-las quando encontradas.
+- O diretório `public/locales/` MUST NOT existir. Strings ficam no JSX.
 - Componentes de seleção de idioma (`LanguageSwitcher`, etc.) MUST NOT existir.
+- Mensagens de erro/sucesso de UI ficam em strings literais pt-BR no ponto de uso.
 - Documentos de produto (spec, plan, tasks, README, CLAUDE.md, comentários de PR)
   podem ser escritos em pt-BR ou en — esta restrição vale apenas para o **site final
-  servido ao usuário**.
+  servido ao usuário** e o código fonte da app.
 
 **Rationale**: O público-alvo do Circulou é Brasil; suporte a múltiplos idiomas
 adiciona custo (tradução, QA, divergência de copy) sem retorno de produto. Manter
-`i18next` em vez de strings hard-coded ainda paga porque centraliza copy num único
-arquivo, facilitando revisão e ajuste textual sem caça em dezenas de `.tsx`.
+`i18next` apenas para um locale é overhead puro — adiciona dependência, suspense
+de carregamento, indireção em todo `useTranslation`, e quebras silenciosas quando
+uma chave erra ou o JSON não carrega. Strings literais pt-BR no JSX são mais
+diretas, mais fáceis de revisar visualmente em PR, e acompanham o componente.
 
 ## Stack Rules & Restrictions
 
@@ -176,10 +181,10 @@ The following restrictions are part of the constitution and apply to every chang
   de UI/grid permitido.
 - **Sass não é dependência obrigatória.** Pode ser usado por ferramentas de build
   internas, mas o app principal estiliza via Tailwind + CSS puro/`@theme`.
-- **Sem multi-idioma.** Pacotes auxiliares de detecção/troca de locale
-  (`i18next-browser-languagedetector`, `i18next-http-backend` configurado para
-  múltiplos namespaces de idioma, etc.) MUST NOT ser usados para expor mais de um
-  idioma. Nenhum diretório `public/locales/<lang>/` além de `pt-BR/`.
+- **Sem i18n.** `i18next`, `react-i18next`, `i18next-http-backend`,
+  `i18next-browser-languagedetector`, `react-intl`, `formatjs` e similares MUST NOT
+  ser dependências do app. Strings ficam hard-coded em pt-BR nos componentes
+  (Princípio VII). O diretório `public/locales/` MUST NOT existir.
 - **No Docker execution in the local environment.** Contributors MUST NOT run `docker`
   or `docker compose` locally; Docker is not accessible in this development setup.
   Containerized verification belongs to CI / deployment pipelines.
@@ -199,9 +204,9 @@ Before opening a pull request, the contributor MUST verify:
 - [ ] No new dependency violates the Stack Rules & Restrictions above.
 - [ ] Estilização usa Tailwind utilities + tokens declarados em `theme.css`. Sem
       classes de Bootstrap (`btn-primary`, `card`, `col-*`, etc.) no código.
-- [ ] Toda string visível ao usuário está em pt-BR (Princípio VII). Nenhuma string
-      em inglês ou outro idioma vaza para a UI; nenhum locale adicional foi
-      adicionado em `public/locales/`.
+- [ ] Toda string visível ao usuário está em pt-BR (Princípio VII), **hard-coded
+      diretamente no JSX**. Sem `useTranslation`, sem `t('...')`, sem dependência
+      de `i18next` ou similar. Nenhum diretório `public/locales/`.
 
 PR reviewers MUST block merge if any checklist item fails.
 
@@ -225,4 +230,4 @@ PR reviewers MUST block merge if any checklist item fails.
   `AGENTS.md`) exist, they MUST defer to this constitution; conflicts are resolved in
   favor of the constitution.
 
-**Version**: 2.1.0 | **Ratified**: 2026-04-02 | **Last Amended**: 2026-04-28
+**Version**: 3.0.0 | **Ratified**: 2026-04-02 | **Last Amended**: 2026-04-28

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -20,7 +19,6 @@ interface LocationStateWithProduct {
 }
 
 export const ProductPage = () => {
-  const { t } = useTranslation(['common', 'cart']);
   const { storeSlug = '', productSlug = '' } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -158,7 +156,7 @@ export const ProductPage = () => {
             onClick={() => void handleAdd()}
             disabled={adding || isInactive}
           >
-            {adding ? '...' : t('cart:checkout', { defaultValue: 'Adicionar ao carrinho' })}
+            {adding ? '...' : 'Adicionar ao carrinho'}
           </button>
           <hr className="border-gray-200 my-4" />
           <div className="markdown-body prose prose-sm max-w-none">

@@ -4,7 +4,7 @@ Auto-generated from all feature plans. Last updated: 2026-04-27
 
 ## Active Technologies
 
-- TypeScript 5.x (strict mode) sobre React 18.x + React 18 · React Router 6 · Vite 6 · Tailwind CSS 4 (`@tailwindcss/vite`) · i18next 25 (+ react-i18next) · `lofn-react` (último) · `nauth-react` 0.7.x · `sonner` (toaster, herdado da referência) · `react-markdown` + `remark-gfm` (descrição de produto) (001-circulou-marketplace)
+- TypeScript 5.x (strict mode) sobre React 18.x + React 18 · React Router 6 · Vite 6 · Tailwind CSS 4 (`@tailwindcss/vite`) · `lofn-react` (último) · `nauth-react` 0.7.x · `sonner` (toaster, herdado da referência) · `react-markdown` + `remark-gfm` (descrição de produto). Strings hard-coded em pt-BR — sem i18next (constituição v3.0.0). (001-circulou-marketplace)
 
 ## Project Structure
 
@@ -23,8 +23,9 @@ TypeScript 5.x (strict mode) sobre React 18.x: Follow standard conventions
 
 ## Recent Changes
 
-- 001-circulou-marketplace: Added TypeScript 5.x (strict mode) sobre React 18.x + React 18 · React Router 6 · Vite 6 · Tailwind CSS 4 (`@tailwindcss/vite`) · i18next 25 (+ react-i18next) · `lofn-react` (último) · `nauth-react` 0.7.x · `sonner` (toaster, herdado da referência) · `react-markdown` + `remark-gfm` (descrição de produto)
+- 001-circulou-marketplace: Added TypeScript 5.x (strict mode) sobre React 18.x + React 18 · React Router 6 · Vite 6 · Tailwind CSS 4 (`@tailwindcss/vite`) · `lofn-react` (último) · `nauth-react` 0.7.x · `sonner` (toaster, herdado da referência) · `react-markdown` + `remark-gfm` (descrição de produto)
 - 2026-04-27 (constitution v2.0.0): UI base migrada de Bootstrap 5 para Tailwind CSS 4 com `@tailwindcss/vite`. Tokens de design vivem em `src/styles/theme.css` via `@theme`. Não usar classes Bootstrap em código novo.
+- 2026-04-28 (constitution v3.0.0): i18next removido. Strings ficam hard-coded em pt-BR diretamente no JSX. Sem `useTranslation`, sem `public/locales/`. Tema da marca (oliva/âmbar/cedro/cobre/areia/cru) + tipografia Alfa Slab One + DM Sans aplicados em `src/styles/theme.css`.
 
 <!-- MANUAL ADDITIONS START -->
 

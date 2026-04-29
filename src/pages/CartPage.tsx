@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { useCart } from '@/hooks/useCart';
 import { useStores } from '@/hooks/useStores';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,7 +11,6 @@ import { CartSummary } from '@/components/cart/CartSummary';
 import type { CartItem } from '@/types/cart';
 
 export const CartPage = () => {
-  const { t } = useTranslation('cart');
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { storesById } = useStores();
@@ -69,17 +67,17 @@ export const CartPage = () => {
     );
   }
   if (items.length === 0) {
-    return <EmptyState title={t('empty')} />;
+    return <EmptyState title="Seu carrinho está vazio." />;
   }
 
   return (
     <section className="max-w-7xl mx-auto px-4 py-4">
-      <h1 className="text-2xl font-semibold mb-3">{t('title')}</h1>
+      <h1 className="text-2xl font-semibold mb-3">Carrinho</h1>
       <div
         className="bg-blue-50 border border-blue-200 text-blue-900 rounded-[var(--radius)] p-3 mb-3 text-sm"
         role="status"
       >
-        {t('deviceWarning')}
+        O carrinho ainda não migra entre dispositivos.
       </div>
       {hasUnavailable ? (
         <div
@@ -92,7 +90,7 @@ export const CartPage = () => {
             className="inline-flex items-center px-2 py-1 text-xs border border-gray-700 rounded-[var(--radius-sm)] hover:bg-gray-700 hover:text-white transition shrink-0"
             onClick={removeUnavailable}
           >
-            {t('removeUnavailable')}
+            Remover indisponíveis
           </button>
         </div>
       ) : null}

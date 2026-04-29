@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next';
 import type { SearchPage } from '@/types/search';
 import { shouldShowLoadMore } from '@/lib/pagination';
 
@@ -22,9 +21,7 @@ const LoadMoreInner = ({
 }: {
   onLoadMore: () => void;
   loading: boolean;
-}) => {
-  const { t } = useTranslation('search');
-  return (
+}) => (
     <div className="flex justify-center my-6">
       <button
         type="button"
@@ -32,8 +29,7 @@ const LoadMoreInner = ({
         onClick={onLoadMore}
         disabled={loading}
       >
-        {loading ? '...' : t('loadMore')}
+        {loading ? '...' : 'Buscar mais'}
       </button>
     </div>
   );
-};

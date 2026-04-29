@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next';
 import type { CartItem } from '@/types/cart';
 import type { ProductInfo } from '@/types/product';
 import { formatBRL } from '@/lib/currency';
@@ -18,7 +17,6 @@ export const CartLine = ({
   onQuantityChange,
   onRemove,
 }: CartLineProps) => {
-  const { t } = useTranslation('cart');
   const limit = product && product.limit > 0 ? product.limit : 99;
   const finalPrice = product ? Math.max(0, product.price - product.discount) : 0;
   const subtotal = finalPrice * item.quantity;
@@ -37,7 +35,7 @@ export const CartLine = ({
           </strong>
           {isUnavailable ? (
             <span className="inline-block px-2 py-0.5 text-xs rounded bg-[var(--color-warning)] text-gray-900">
-              {t('unavailable')}
+              Indisponível
             </span>
           ) : null}
         </div>

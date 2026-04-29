@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next';
 import { formatBRL } from '@/lib/currency';
 
 interface CartSummaryProps {
@@ -7,12 +6,10 @@ interface CartSummaryProps {
   onCheckout: () => void;
 }
 
-export const CartSummary = ({ total, canCheckout, onCheckout }: CartSummaryProps) => {
-  const { t } = useTranslation('cart');
-  return (
+export const CartSummary = ({ total, canCheckout, onCheckout }: CartSummaryProps) => (
     <aside className="bg-white border border-gray-200 rounded-[var(--radius)] p-4 sticky top-4">
       <div className="flex justify-between items-baseline mb-3">
-        <span>{t('total')}</span>
+        <span>Total</span>
         <strong className="text-xl">{formatBRL(total)}</strong>
       </div>
       <button
@@ -21,8 +18,7 @@ export const CartSummary = ({ total, canCheckout, onCheckout }: CartSummaryProps
         onClick={onCheckout}
         disabled={!canCheckout}
       >
-        {t('checkout')}
+        Finalizar compra
       </button>
     </aside>
   );
-};
