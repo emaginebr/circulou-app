@@ -36,13 +36,13 @@ export const RelatedProductsRail = ({
             className="mt-2"
             style={{ fontSize: 'var(--text-display-md)' }}
           >
-            Outras peças pra completar a vibe
+            Outros produtos pra completar a vibe
           </h2>
           <p
             className="mt-2 max-w-[50ch]"
             style={{ color: 'var(--color-mute)' }}
           >
-            Garimpamos peças parecidas em estilo e faixa de preço.
+            Garimpamos produtos similares e na mesma faixa de preço.
           </p>
         </div>
         <Link to={allCta} className="circulou-btn-ghost no-underline">

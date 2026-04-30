@@ -171,7 +171,7 @@ export const ProductGallery = ({
                 textTransform: 'uppercase',
               }}
             >
-              Esta peça já circulou
+              Este produto já circulou
             </span>
           </div>
         ) : null}

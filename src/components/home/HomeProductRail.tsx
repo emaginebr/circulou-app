@@ -34,7 +34,7 @@ export const HomeProductRail = ({ products, storesById }: HomeProductRailProps) 
             className="mt-2 max-w-[50ch]"
             style={{ color: 'var(--color-mute)' }}
           >
-            Onze peças garimpadas nos últimos sete dias, prontas pra circular.
+            Onze produtos garimpados nos últimos sete dias, prontos pra circular.
           </p>
         </div>
         {/* TODO rota /search?categoria=hot-news */}

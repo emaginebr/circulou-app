@@ -57,20 +57,35 @@ export const ProductCard = ({ product, store, showStore = false, storeName }: Pr
         }}
       />
       <div className="flex flex-col gap-1.5 p-4 grow">
-        {store ? (
-          <span
-            className="brand-label"
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.7rem',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              color: 'var(--color-cedro)',
-            }}
-          >
-            {store.name}
-          </span>
-        ) : null}
+        {(() => {
+          const displayName = store?.name ?? (showStore ? storeName : undefined);
+          if (!displayName) return null;
+          const inner = (
+            <span
+              className="truncate"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.7rem',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: 'var(--color-mute)',
+              }}
+            >
+              {displayName}
+            </span>
+          );
+          return storeHref ? (
+            <Link
+              to={storeHref}
+              className="no-underline hover:opacity-80 block"
+              onClick={e => e.stopPropagation()}
+            >
+              {inner}
+            </Link>
+          ) : (
+            inner
+          );
+        })()}
         <h3
           className="product-name leading-snug"
           style={{
@@ -84,31 +99,6 @@ export const ProductCard = ({ product, store, showStore = false, storeName }: Pr
           {product.name}
         </h3>
         <PriceTag price={product.price} discount={product.discount} />
-        {storeHref && store ? (
-          <Link
-            to={storeHref}
-            className="text-sm hover:underline mt-auto no-underline"
-            style={{ color: 'var(--color-cobre)' }}
-            onClick={e => e.stopPropagation()}
-          >
-            {store.name}
-          </Link>
-        ) : null}
-        {showStore && storeName ? (
-          <span
-            className="flex items-center gap-1.5 mt-1 pt-1.5"
-            style={{
-              fontSize: '0.75rem',
-              color: 'var(--color-mute)',
-              borderTop: '1px dashed var(--color-line)',
-            }}
-          >
-            <span aria-hidden="true" style={{ color: 'var(--color-oliva)' }}>
-              ○
-            </span>
-            {storeName}
-          </span>
-        ) : null}
       </div>
     </article>
   );

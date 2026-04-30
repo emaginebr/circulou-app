@@ -27,7 +27,7 @@ export const ProductDescription = ({ markdown }: ProductDescriptionProps) => {
         <span aria-hidden="true" style={{ color: 'var(--color-ambar)', letterSpacing: '0.2em' }}>
           ○ ○ ○
         </span>
-        Sobre essa peça
+        Sobre esse produto
       </span>
       <h2
         id="pdp-description-title"
@@ -39,7 +39,7 @@ export const ProductDescription = ({ markdown }: ProductDescriptionProps) => {
           lineHeight: 1.2,
         }}
       >
-        Detalhes editoriais da peça
+        Detalhes editoriais do produto
       </h2>
       <div className="pdp-md">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>

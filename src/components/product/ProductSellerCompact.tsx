@@ -86,7 +86,7 @@ export const ProductSellerCompact = ({ store, reputation }: ProductSellerCompact
           <span aria-hidden="true" style={{ color: 'var(--color-mute)' }}>
             ·
           </span>
-          <span>{formatSalesCount(reputation.salesCount)} peças vendidas</span>
+          <span>{formatSalesCount(reputation.salesCount)} produtos vendidos</span>
           <span aria-hidden="true" style={{ color: 'var(--color-mute)' }}>
             ·
           </span>

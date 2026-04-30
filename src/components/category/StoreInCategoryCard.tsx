@@ -57,7 +57,7 @@ export const StoreInCategoryCard = ({ store, categorySlug }: StoreInCategoryCard
             textTransform: 'uppercase',
           }}
         >
-          ○ Brechó parceiro
+          ○ Loja parceira
         </div>
       </div>
     </div>
@@ -69,7 +69,7 @@ export const StoreInCategoryCard = ({ store, categorySlug }: StoreInCategoryCard
         color: 'var(--color-cobre)',
       }}
     >
-      {store.productCount} {store.productCount === 1 ? 'peça nesta categoria' : 'peças nesta categoria'} →
+      {store.productCount} {store.productCount === 1 ? 'produto nesta categoria' : 'produtos nesta categoria'} →
     </span>
   </Link>
 );

@@ -202,39 +202,25 @@ interface PrimitiveWidgetProps {
 }
 
 /**
- * Inputs livres (text/number) usam estado local + commit no `blur`/`Enter`
- * para não disparar uma busca paginada a cada tecla.
+ * `text` é renderizado como `<select>` listando apenas os valores que
+ * existem nos produtos do conjunto resultante (`availableValues`). Commit
+ * é imediato ao escolher uma opção.
  */
-const TextWidget = ({ filter, value, onChange }: PrimitiveWidgetProps) => {
-  const [local, setLocal] = useState<string>(value ?? '');
-
-  useEffect(() => {
-    setLocal(value ?? '');
-  }, [value]);
-
-  const commit = () => {
-    const trimmed = local.trim();
-    if (trimmed !== (value ?? '')) onChange(trimmed === '' ? null : trimmed);
-  };
-
-  return (
-    <input
-      type="text"
-      value={local}
-      onChange={e => setLocal(e.target.value)}
-      onBlur={commit}
-      onKeyDown={e => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          commit();
-        }
-      }}
-      placeholder={`Buscar por ${filter.label.toLowerCase()}`}
-      aria-label={filter.label}
-      style={inputBaseStyle}
-    />
-  );
-};
+const TextWidget = ({ filter, value, onChange }: PrimitiveWidgetProps) => (
+  <select
+    value={value ?? ''}
+    onChange={e => onChange(e.target.value === '' ? null : e.target.value)}
+    aria-label={filter.label}
+    style={inputBaseStyle}
+  >
+    <option value="">Todos</option>
+    {filter.availableValues.map(opt => (
+      <option key={opt} value={opt}>
+        {opt}
+      </option>
+    ))}
+  </select>
+);
 
 interface NumberWidgetProps extends PrimitiveWidgetProps {
   step: string;

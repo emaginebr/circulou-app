@@ -96,8 +96,8 @@ export const HomeFeatureBanners = () => (
           tagText="★ Curadoria do Bem"
           tagBg="var(--color-ambar)"
           tagColor="var(--color-cedro)"
-          title="Alfaiataria que atravessa décadas"
-          description="Blazers, calças e ternos selecionados peça a peça por nossa equipe."
+          title="Curadoria que atravessa décadas"
+          description="Itens selecionados manualmente pela nossa equipe."
           variant="wide"
         />
         {/* TODO rota /last-chance */}
@@ -107,7 +107,7 @@ export const HomeFeatureBanners = () => (
           tagText="Last Chance"
           tagBg="var(--color-cobre)"
           tagColor="var(--color-cru)"
-          title="Últimas peças em estoque"
+          title="Últimas unidades em estoque"
         />
         {/* TODO rota /novas-com-etiquetas */}
         <BannerTile

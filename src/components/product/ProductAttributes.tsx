@@ -28,19 +28,20 @@ export const ProductAttributes = ({ attributes }: ProductAttributesProps) => {
     >
       <h2
         id="pdp-attrs-title"
-        className="inline-flex items-center gap-2 mb-4"
+        className="inline-flex items-center gap-2"
         style={{
           fontFamily: 'var(--font-mono)',
           fontSize: '0.78rem',
           letterSpacing: '0.12em',
           textTransform: 'uppercase',
           color: 'var(--color-cedro)',
+          marginBottom: '1rem',
         }}
       >
         <span aria-hidden="true" style={{ color: 'var(--color-cobre)' }}>
           ▣
         </span>
-        Características da peça
+        Características do produto
       </h2>
 
       <div className="pdp-attrs-grid">
@@ -52,7 +53,9 @@ export const ProductAttributes = ({ attributes }: ProductAttributesProps) => {
       <style>{`
         .pdp-attrs-grid {
           display: grid;
-          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+          /* auto-fit: 1 grupo ocupa toda a largura; 2+ se distribuem
+             em colunas de no mínimo 220px. */
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
           gap: 1.75rem;
         }
         .pdp-attrs-grid > .pdp-attrs--Cuidados {
@@ -84,23 +87,25 @@ const ICON_BY_TITLE: Record<string, string> = {
 
 const AttributeGroup = ({ group }: AttributeGroupProps) => (
   <div className={`pdp-attrs--${group.title}`}>
-    <h3
-      className="flex items-center gap-2 mb-4 pb-2"
-      style={{
-        fontFamily: 'var(--font-mono)',
-        fontSize: '0.78rem',
-        letterSpacing: '0.12em',
-        textTransform: 'uppercase',
-        color: 'var(--color-cedro)',
-        borderBottom: '1.5px solid var(--color-cedro)',
-        fontWeight: 500,
-      }}
-    >
-      <span aria-hidden="true" style={{ color: 'var(--color-cobre)', fontSize: '0.7rem' }}>
-        {ICON_BY_TITLE[group.title] ?? '▲'}
-      </span>
-      {group.title}
-    </h3>
+    {group.title !== 'Geral' ? (
+      <h3
+        className="flex items-center gap-2 mb-4 pb-2"
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '0.78rem',
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          color: 'var(--color-cedro)',
+          borderBottom: '1.5px solid var(--color-cedro)',
+          fontWeight: 500,
+        }}
+      >
+        <span aria-hidden="true" style={{ color: 'var(--color-cobre)', fontSize: '0.7rem' }}>
+          {ICON_BY_TITLE[group.title] ?? '▲'}
+        </span>
+        {group.title}
+      </h3>
+    ) : null}
     <dl
       className="m-0 grid items-baseline"
       style={{

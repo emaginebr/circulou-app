@@ -192,7 +192,7 @@ export const ProductShippingCalculator = ({ productId }: ProductShippingCalculat
           letterSpacing: '0.04em',
         }}
       >
-        Devolução grátis em até 7 dias se a peça não te servir.
+        Devolução grátis em até 7 dias se o produto não atender.
       </p>
     </section>
   );

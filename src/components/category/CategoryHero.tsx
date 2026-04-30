@@ -102,7 +102,7 @@ export const CategoryHero = ({
         >
           {totalCount}
         </strong>
-        peças circulando agora
+        produtos circulando agora
         <span style={{ color: 'var(--color-mute)' }}>
           · {totalStores} {totalStores === 1 ? 'loja parceira' : 'lojas parceiras'}
         </span>

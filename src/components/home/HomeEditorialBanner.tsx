@@ -36,7 +36,7 @@ export const HomeEditorialBanner = () => {
             className="mt-4"
             style={{ fontSize: 'var(--text-display-lg)' }}
           >
-            Cada peça carrega uma história. Qual será a próxima?
+            Cada produto carrega uma história. Qual será a próxima?
           </h2>
           <p
             className="mt-5 max-w-[52ch]"
@@ -45,7 +45,7 @@ export const HomeEditorialBanner = () => {
               fontSize: 'var(--text-body-lg)',
             }}
           >
-            No Circulou a moda não termina no guarda-roupa — ela passa de mão em mão, ganha vida nova e diminui o impacto da indústria fast-fashion.
+            No Circulou nada precisa terminar quando deixa de servir — passa de mão em mão, ganha vida nova e diminui o impacto do consumo descartável.
           </p>
           {/* TODO rota /curadoria-do-bem */}
           <Link to="/curadoria-do-bem" className="circulou-btn-primary mt-6">

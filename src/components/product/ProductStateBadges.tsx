@@ -29,7 +29,7 @@ export const ProductStateBadges = ({ product, attributes }: ProductStateBadgesPr
   const heavyDiscount = onSale && product.discount / product.price > 0.5;
 
   if (isInactive) {
-    badges.push({ key: 'sold', variant: 'sold', label: 'Esta peça já circulou' });
+    badges.push({ key: 'sold', variant: 'sold', label: 'Este produto já circulou' });
     return renderList(badges);
   }
 
@@ -37,7 +37,7 @@ export const ProductStateBadges = ({ product, attributes }: ProductStateBadgesPr
     badges.push({
       key: 'unique',
       variant: 'unique',
-      label: '★ Só essa! Última peça em estoque',
+      label: '★ Só esse! Última unidade em estoque',
     });
   }
   if (newWithTag) {
@@ -55,7 +55,7 @@ const renderList = (badges: BadgeSpec[]) => {
   return (
     <div
       role="group"
-      aria-label="Estado da peça"
+      aria-label="Estado do produto"
       className="flex flex-wrap gap-2"
     >
       {badges.map(b => {

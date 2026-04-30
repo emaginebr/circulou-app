@@ -30,14 +30,14 @@ export const SearchBar = ({ initialValue = '', className = '' }: SearchBarProps)
         🔍
       </span>
       <label htmlFor="header-search" className="sr-only">
-        Buscar peças
+        Buscar produtos
       </label>
       <input
         id="header-search"
         type="search"
         value={value}
         onChange={e => setValue(e.target.value)}
-        placeholder="Busque por marca, peça ou estilo…"
+        placeholder="Busque por marca, produto ou modelo…"
         className="w-full"
         style={{
           height: 44,

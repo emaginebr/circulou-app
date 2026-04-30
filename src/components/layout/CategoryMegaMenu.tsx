@@ -153,11 +153,13 @@ const MegaPanelContent = ({ root, onItemClick }: MegaPanelContentProps) => {
         {(root.children ?? []).map(group => (
           <div key={group.slug}>
             <h3
-              className="text-xs font-bold uppercase mb-3"
+              className="font-bold uppercase"
               style={{
                 color: 'var(--color-cedro)',
                 letterSpacing: '0.08em',
                 fontFamily: 'var(--font-mono)',
+                fontSize: '0.95rem',
+                marginBottom: '0.75rem',
               }}
             >
               {group.name}
@@ -186,11 +188,13 @@ const MegaPanelContent = ({ root, onItemClick }: MegaPanelContentProps) => {
   return (
     <div>
       <h3
-        className="text-xs font-bold uppercase mb-3"
+        className="font-bold uppercase"
         style={{
           color: 'var(--color-cedro)',
           letterSpacing: '0.08em',
           fontFamily: 'var(--font-mono)',
+          fontSize: '0.95rem',
+          marginBottom: '1rem',
         }}
       >
         {root.name}

@@ -64,7 +64,7 @@ export const Footer = () => (
             className="mt-3 max-w-[28ch]"
             style={{ color: 'var(--color-areia)', fontSize: '0.9rem' }}
           >
-            Brechó online que conecta moda circular, propósito e gente que se importa.
+            Marketplace que conecta consumo circular, propósito e gente que se importa.
           </p>
           <div className="flex gap-4 mt-6" aria-label="Redes sociais">
             <a

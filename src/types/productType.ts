@@ -63,6 +63,17 @@ export interface AppliedProductTypeFilter {
   value: string;
 }
 
+/**
+ * Valor de um filtro associado ao produto. Vem aninhado em
+ * `ProductInfo.filterValues[]` — formato gravado pelo seller.
+ */
+export interface ProductFilterValueInfo {
+  filterId: number;
+  filterLabel: string;
+  value: string;
+  dataType: ProductTypeFilterDataType;
+}
+
 /** Resposta de `POST /product/search-filtered`. */
 export interface ProductSearchFilteredResult {
   products: ProductInfo[];

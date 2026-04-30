@@ -10,9 +10,9 @@ export const PriceTag = ({ price, discount }: PriceTagProps) => {
   const hasDiscount = discount > 0 && price > 0;
   const percent = hasDiscount ? calculateDiscountPercent(price, discount) : 0;
   return (
-    <div className="flex items-baseline gap-2 mt-1">
+    <div className="flex items-baseline flex-wrap gap-x-2 gap-y-1 mt-1">
       <strong
-        className="price-now"
+        className="price-now whitespace-nowrap"
         style={{
           fontFamily: 'var(--font-display)',
           fontSize: '1.25rem',
@@ -24,13 +24,13 @@ export const PriceTag = ({ price, discount }: PriceTagProps) => {
       {hasDiscount ? (
         <>
           <span
-            className="price-old line-through"
+            className="price-old line-through whitespace-nowrap"
             style={{ fontSize: '0.85rem', color: 'var(--color-mute)' }}
           >
             {formatBRL(price)}
           </span>
           <span
-            className="inline-block px-2 py-0.5 text-xs font-semibold rounded"
+            className="inline-block px-2 py-0.5 text-xs font-semibold rounded whitespace-nowrap"
             style={{
               background: 'var(--color-ambar)',
               color: 'var(--color-cedro)',

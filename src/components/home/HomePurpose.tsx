@@ -76,7 +76,7 @@ export const HomePurpose = () => (
               fontSize: 'var(--text-body-lg)',
             }}
           >
-            Cada peça revendida no Circulou economiza água, evita CO₂ e ainda doa parte do valor para ONGs parceiras escolhidas por você.
+            Cada produto revendido no Circulou economiza água, evita CO₂ e ainda doa parte do valor para ONGs parceiras escolhidas por você.
           </p>
         </div>
 
@@ -84,7 +84,7 @@ export const HomePurpose = () => (
           <ImpactCard
             number="2.7M"
             title="Litros de água economizados"
-            description="Cada peça reusada equivale a ~2 700 L que não foram gastos na produção."
+            description="Cada produto reusado significa menos recursos extraídos do planeta."
             bg="var(--color-cobre)"
           />
           <ImpactCard
@@ -95,7 +95,7 @@ export const HomePurpose = () => (
           />
           <ImpactCard
             number="3.4t"
-            title="Tecido salvo do lixo"
+            title="Resíduos evitados"
             description="Tudo que deixou de virar resíduo desde nosso primeiro pedido."
             bg="var(--color-cobre)"
           />

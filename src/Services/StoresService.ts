@@ -11,14 +11,16 @@ interface GraphQLResponse<T> {
 
 const STORES_QUERY = /* GraphQL */ `
   query Stores {
-    stores {
-      storeId
-      slug
-      name
-      logoUrl
-      logo
-      ownerId
-      status
+    stores(skip: 0, take: 50) {
+      items {
+        storeId
+        slug
+        name
+        logoUrl
+        logo
+        ownerId
+        status
+      }
     }
   }
 `;
@@ -53,12 +55,14 @@ class StoresService {
       return this.cache;
     }
     const opts = signal ? { signal, skipAuth: true } : { skipAuth: true };
-    const response = await HttpClient.post<GraphQLResponse<{ stores: StoreInfo[] }>>(
+    const response = await HttpClient.post<
+      GraphQLResponse<{ stores: { items: StoreInfo[] } }>
+    >(
       url,
       { query: STORES_QUERY },
       opts,
     );
-    const all = response.data?.stores ?? [];
+    const all = response.data?.stores?.items ?? [];
     const active = all.filter(s => isActiveStatus(s.status));
     this.cache = active;
     return active;

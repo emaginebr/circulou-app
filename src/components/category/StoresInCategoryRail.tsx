@@ -40,13 +40,13 @@ export const StoresInCategoryRail = ({
               className="mt-2"
               style={{ fontSize: 'var(--text-display-md)' }}
             >
-              Brechós com {categoryName.toLowerCase()} pra você
+              Lojas com {categoryName.toLowerCase()} pra você
             </h2>
             <p
               className="max-w-[56ch] mt-2"
               style={{ color: 'var(--color-ink-soft)' }}
             >
-              {stores.length} {stores.length === 1 ? 'loja tem' : 'lojas têm'} peças nesta categoria. Conheça quem garimpa por aí.
+              {stores.length} {stores.length === 1 ? 'loja tem' : 'lojas têm'} produtos nesta categoria. Conheça quem garimpa por aí.
             </p>
           </div>
         </header>

@@ -10,9 +10,9 @@ const HERO_PHOTO_URL =
 export const HomeHero = () => {
   // MOCK: contadores fixos (a serem trocados por endpoint /metrics).
   const kpis = [
-    { value: '+12k', label: 'peças circulando' },
+    { value: '+12k', label: 'produtos circulando' },
     { value: '87', label: 'ONGs parceiras' },
-    { value: '3.4t', label: 'tecido salvo do lixo' },
+    { value: '3.4t', label: 'resíduos evitados' },
   ];
 
   const sunRef = useParallax<HTMLDivElement>({
@@ -112,7 +112,7 @@ export const HomeHero = () => {
                 color: 'var(--color-areia)',
               }}
             >
-              Peças garimpadas, curadas com afeto e prontas para uma segunda jornada. Compre, venda e doe — tudo em um só brechó.
+              Produtos garimpados, curados com afeto e prontos para uma segunda jornada. Compre, venda e doe — tudo em um só marketplace.
             </p>
             <div className="flex flex-wrap gap-4">
               {/* TODO rota /search dedicada à curadoria */}
@@ -170,7 +170,7 @@ export const HomeHero = () => {
               ref={photoRef}
               className="parallax-hero-photo overflow-hidden"
               role="img"
-              aria-label="Peça em destaque do brechó"
+              aria-label="Produto em destaque"
               style={{
                 borderRadius: 'var(--radius-lg)',
                 aspectRatio: '4 / 5',
@@ -195,7 +195,7 @@ export const HomeHero = () => {
                 boxShadow: 'var(--shadow)',
               }}
             >
-              do brechó com amor ♡
+              feito com amor ♡
             </span>
           </div>
         </div>

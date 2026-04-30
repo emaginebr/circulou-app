@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
@@ -16,12 +16,10 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { ProductGallery } from '@/components/product/ProductGallery';
 import { ProductBreadcrumb } from '@/components/product/ProductBreadcrumb';
-import { ProductCategoryChip } from '@/components/product/ProductCategoryChip';
 import { ProductPriceBlock } from '@/components/product/ProductPriceBlock';
 import { ProductStateBadges } from '@/components/product/ProductStateBadges';
 import { ProductQtyCtaRow } from '@/components/product/ProductQtyCtaRow';
 import { ProductDescription } from '@/components/product/ProductDescription';
-import { ProductShippingCalculator } from '@/components/product/ProductShippingCalculator';
 import { ProductSellerCompact } from '@/components/product/ProductSellerCompact';
 import { ProductAttributes } from '@/components/product/ProductAttributes';
 import { RelatedProductsRail } from '@/components/product/RelatedProductsRail';
@@ -64,10 +62,17 @@ export const ProductPage = () => {
   const [related, setRelated] = useState<ProductInfo[]>([]);
   const [categorySlug, setCategorySlug] = useState<string | null>(null);
 
-  // Fetch base do produto (mantém a lógica do ProductPage anterior).
+  // Fetch base do produto. Quando navega entre produtos (mesma instância
+  // do componente) o `productSlug` muda — precisamos sincronizar o `product`
+  // state, seja a partir do `state` da rota ou de uma chamada fresca.
   useEffect(() => {
     let cancelled = false;
-    if (initialFromState && initialFromState.slug === productSlug) return;
+    if (initialFromState && initialFromState.slug === productSlug) {
+      setProduct(initialFromState);
+      setLoading(false);
+      setError(null);
+      return;
+    }
     setLoading(true);
     setError(null);
     productsService
@@ -127,6 +132,33 @@ export const ProductPage = () => {
     };
   }, [product?.productId, product?.categoryId, product?.storeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Atributos exibidos: se o produto tem `filterValues[]` reais (do
+  // Tipo de Produto da categoria), usa esses; senão cai no mock.
+  const displayAttributes = useMemo<ProductAttributesData | null>(() => {
+    const fv = product?.filterValues;
+    if (!product || !fv || fv.length === 0) return attributes;
+    const sizeFilter = fv.find(f => f.filterLabel.toLowerCase().includes('tamanho'));
+    const conditionRaw = fv.find(f => f.filterLabel.toLowerCase().includes('condição'))?.value ?? null;
+    return {
+      productId: product.productId,
+      condition:
+        conditionRaw === 'Nova com etiqueta'
+          ? 'new-with-tag'
+          : conditionRaw === 'Seminova'
+            ? 'semi-new'
+            : conditionRaw === 'Sinais de uso'
+              ? 'signs-of-use'
+              : 'great',
+      sizeBr: sizeFilter?.value ?? null,
+      groups: [
+        {
+          title: 'Geral',
+          items: fv.map(f => ({ label: f.filterLabel, value: f.value })),
+        },
+      ],
+    };
+  }, [product, attributes]);
+
   if (loading && !product) return <LoadingSpinner />;
   if (error) return <ErrorState message={error} />;
   if (!product) {
@@ -136,13 +168,6 @@ export const ProductPage = () => {
   const limit = product.limit > 0 ? product.limit : 99;
   const isInactive = product.status !== ProductStatusEnum.Active;
   const store = product.storeId !== null ? storesById.get(product.storeId) : undefined;
-  const sku = `SKU ${String(product.productId).padStart(6, '0')}`;
-  // MOCK :: LOFN-G30 — "marca" derivada do mock de atributos quando houver,
-  // senão fallback para o nome da loja como brand-line.
-  const brandLine =
-    attributes?.groups
-      .find(g => g.title === 'Geral')
-      ?.items.find(i => i.label === 'Marca')?.value ?? store?.name ?? 'Brechó parceiro';
 
   const handleAdd = async () => {
     if (!isAuthenticated) {
@@ -203,27 +228,6 @@ export const ProductPage = () => {
         </div>
 
         <section className="flex flex-col gap-4" aria-labelledby="pdp-product-title">
-          {/* Eyebrow brand + SKU */}
-          <p
-            className="flex items-center gap-2 m-0"
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.75rem',
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              color: 'var(--color-cedro)',
-            }}
-          >
-            <span aria-hidden="true">●</span>
-            <span style={{ borderBottom: '1px dashed var(--color-line)', paddingBottom: 1 }}>
-              {brandLine}
-            </span>
-            <span aria-hidden="true" style={{ color: 'var(--color-line)' }}>
-              ·
-            </span>
-            <span>{sku}</span>
-          </p>
-
           <h1
             id="pdp-product-title"
             style={{
@@ -237,11 +241,9 @@ export const ProductPage = () => {
             {product.name}
           </h1>
 
-          <ProductCategoryChip categoryId={product.categoryId} />
-
           <ProductPriceBlock price={product.price} discount={product.discount} />
 
-          <ProductStateBadges product={product} attributes={attributes} />
+          <ProductStateBadges product={product} attributes={displayAttributes} />
 
           <ProductQtyCtaRow
             qty={qty}
@@ -258,13 +260,11 @@ export const ProductPage = () => {
 
           <ProductDescription markdown={product.description ?? ''} />
 
-          <ProductShippingCalculator productId={product.productId} />
+          {displayAttributes ? <ProductAttributes attributes={displayAttributes} /> : null}
 
           {store && reputation ? (
             <ProductSellerCompact store={store} reputation={reputation} />
           ) : null}
-
-          {attributes ? <ProductAttributes attributes={attributes} /> : null}
         </section>
       </section>
 

@@ -96,9 +96,9 @@ export const HomeSellCta = () => {
                 color: 'var(--color-cru)',
               }}
             >
-              Sua peça circulou.
+              Seu produto circulou.
               <br />
-              Seu guarda-roupa agradece.
+              Sua casa agradece.
             </h2>
             <p
               className="mt-5 max-w-[50ch]"
@@ -107,7 +107,7 @@ export const HomeSellCta = () => {
                 color: 'var(--color-areia)',
               }}
             >
-              A gente envia uma sacola pra sua casa. Você devolve com as peças que não usa mais. A Circulou cuida do resto — fotografa, anuncia e te paga em dinheiro ou crédito.
+              A gente envia uma caixa pra sua casa. Você devolve com os produtos que não usa mais. A Circulou cuida do resto — fotografa, anuncia e te paga em dinheiro ou crédito.
             </p>
             <div className="flex flex-wrap gap-4 mt-8">
               {/* TODO rota /quero-vender (não existe ainda) */}

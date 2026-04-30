@@ -407,7 +407,7 @@ export const CategoryPage = () => {
                       <strong style={{ color: 'var(--color-cedro)' }}>
                         {result.totalCount}
                       </strong>{' '}
-                      peças
+                      produtos
                     </>
                   ) : null}
                 </p>
@@ -511,7 +511,7 @@ const EmptyCategory = ({ onClear, onHome }: EmptyCategoryProps) => (
       Nada por aqui ainda
     </h2>
     <p className="mb-6" style={{ color: 'var(--color-ink-soft)' }}>
-      Volte logo — peças novas chegam todo dia. Tente afrouxar a faixa de preço, mudar de subcategoria ou voltar para a home.
+      Volte logo — produtos novos chegam todo dia. Tente afrouxar a faixa de preço, mudar de subcategoria ou voltar para a home.
     </p>
     <div className="flex gap-3 justify-center flex-wrap">
       <button type="button" className="circulou-btn-ghost" onClick={onClear}>
