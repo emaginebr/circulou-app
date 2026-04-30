@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState, useCallback, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useStores } from '@/hooks/useStores';
 import { categoriesService } from '@/Services/CategoriesService';
+import { productTypeService } from '@/Services/ProductTypeService';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Pagination } from '@/components/ui/Pagination';
@@ -11,6 +12,7 @@ import { ProductCard } from '@/components/product/ProductCard';
 import { CategoryHero } from '@/components/category/CategoryHero';
 import { SubcategoryChips } from '@/components/category/SubcategoryChips';
 import { StoresInCategoryRail } from '@/components/category/StoresInCategoryRail';
+import { ProductTypeFiltersPanel } from '@/components/category/ProductTypeFiltersPanel';
 import { PAGE_SIZE } from '@/lib/pagination';
 import type {
   CategoryNode,
@@ -18,6 +20,10 @@ import type {
   StoreInCategory,
 } from '@/types/category';
 import type { FilterState, SortBy } from '@/types/search';
+import type {
+  AvailableFilterInfo,
+  ProductTypeFilterSelection,
+} from '@/types/productType';
 
 const parseNumber = (raw: string | null): number | null => {
   if (raw === null) return null;
@@ -38,6 +44,48 @@ const parseSort = (raw: string | null): SortBy =>
     ? (raw as SortBy)
     : 'relevance';
 
+/**
+ * URL serialization dos filtros dinâmicos (Tipo de Produto):
+ *
+ *   ?pt_<filterId>=<value>     (ex: ?pt_88=Branco&pt_91=42)
+ *
+ * Escolhi o formato com prefixo `pt_` em params separados por ser
+ * legível no navegador, fácil de compor com os outros params (store,
+ * min, max, sort, page) e trivial de limpar (apenas chaves `pt_*`).
+ */
+const PT_PREFIX = 'pt_';
+
+const readDynamicFilters = (
+  search: URLSearchParams,
+): ProductTypeFilterSelection[] => {
+  const out: ProductTypeFilterSelection[] = [];
+  search.forEach((value, key) => {
+    if (!key.startsWith(PT_PREFIX)) return;
+    const idStr = key.slice(PT_PREFIX.length);
+    const id = Number(idStr);
+    if (!Number.isFinite(id) || id <= 0) return;
+    if (value === '') return;
+    out.push({ filterId: id, value });
+  });
+  return out;
+};
+
+/** Encontra o nó (e parents) na árvore para um slug hierárquico. */
+const locateNode = (
+  tree: CategoryNode[],
+  slug: string,
+  parents: CategoryNode[] = [],
+): { node: CategoryNode | null; parents: CategoryNode[] } => {
+  for (const node of tree) {
+    if (node.slug === slug) return { node, parents };
+    if (node.children) {
+      const found = locateNode(node.children, slug, [...parents, node]);
+      if (found.node) return found;
+    }
+  }
+  return { node: null, parents: [] };
+};
+
 export const CategoryPage = () => {
   const params = useParams();
   // Rota /:slug/* — junta o primeiro segmento com o splat pra reconstruir
@@ -50,10 +98,10 @@ export const CategoryPage = () => {
 
   const [tree, setTree] = useState<CategoryNode[]>([]);
   const [result, setResult] = useState<CategorySearchResult | null>(null);
+  const [availableFilters, setAvailableFilters] = useState<AvailableFilterInfo[]>([]);
   const [storesInCategory, setStoresInCategory] = useState<StoreInCategory[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const filters = useMemo<FilterState>(
     () => ({
@@ -64,6 +112,11 @@ export const CategoryPage = () => {
       categoryId: null,
       sort: parseSort(searchParams.get('sort')),
     }),
+    [searchParams],
+  );
+
+  const dynamicFilters = useMemo<ProductTypeFilterSelection[]>(
+    () => readDynamicFilters(searchParams),
     [searchParams],
   );
 
@@ -140,6 +193,37 @@ export const CategoryPage = () => {
     [updateSearchParams],
   );
 
+  const setDynamicFilters = useCallback(
+    (selections: ProductTypeFilterSelection[]) =>
+      updateSearchParams(next => {
+        // Limpa só os params dinâmicos antes de reescrever — preserva
+        // store/min/max/sale/sort/page.
+        const keysToDelete: string[] = [];
+        next.forEach((_, key) => {
+          if (key.startsWith(PT_PREFIX)) keysToDelete.push(key);
+        });
+        for (const key of keysToDelete) next.delete(key);
+        for (const sel of selections) {
+          next.set(`${PT_PREFIX}${sel.filterId}`, sel.value);
+        }
+        next.delete('page');
+      }),
+    [updateSearchParams],
+  );
+
+  const clearDynamicFilters = useCallback(
+    () =>
+      updateSearchParams(next => {
+        const keysToDelete: string[] = [];
+        next.forEach((_, key) => {
+          if (key.startsWith(PT_PREFIX)) keysToDelete.push(key);
+        });
+        for (const key of keysToDelete) next.delete(key);
+        next.delete('page');
+      }),
+    [updateSearchParams],
+  );
+
   // Carrega árvore do marketplace (mock).
   useEffect(() => {
     let cancelled = false;
@@ -156,28 +240,63 @@ export const CategoryPage = () => {
     };
   }, []);
 
-  // Carrega resultado da busca paginada.
+  // Resolve o nó atual da árvore para enriquecer `category.name` e `parents`
+  // (o backend retorna só os produtos paginados — nome e breadcrumb seguem
+  // vindos da árvore client-side).
+  const located = useMemo(() => locateNode(tree, slug), [tree, slug]);
+
+  // Carrega resultado da busca paginada — SEMPRE via /product/search-filtered.
+  // O response inclui `availableFilters` (schema dinâmico já restrito aos
+  // valores presentes no conjunto resultante).
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    void categoriesService
-      .searchInCategory(effectiveSlug, filters, page)
+    setAvailableFilters([]);
+
+    const ac = new AbortController();
+    void productTypeService
+      .searchFiltered(
+        {
+          categorySlug: effectiveSlug,
+          filters: dynamicFilters,
+          priceMin: filters.priceMin ?? null,
+          priceMax: filters.priceMax ?? null,
+          onlyOnSale: filters.onlyOnSale === true,
+          pageNum: page,
+        },
+        ac.signal,
+      )
       .then(res => {
-        if (!cancelled) setResult(res);
+        if (cancelled) return;
+        setResult({
+          category: located.node ?? {
+            slug: effectiveSlug,
+            name: effectiveSlug,
+            productCount: res.totalItems,
+          },
+          parents: located.parents,
+          products: res.products,
+          totalCount: res.totalItems,
+          page: res.pageNum,
+          pageCount: res.pageCount,
+        });
+        setAvailableFilters(res.availableFilters ?? []);
       })
       .catch(err => {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Falha ao carregar categoria');
-        }
+        if (cancelled) return;
+        if ((err as Error)?.name === 'AbortError') return;
+        setError(err instanceof Error ? err.message : 'Falha ao carregar categoria');
+        setAvailableFilters([]);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
+      ac.abort();
     };
-  }, [effectiveSlug, filters, page]);
+  }, [effectiveSlug, filters, page, dynamicFilters, located]);
 
   // Carrega lojas da categoria raiz (não filtra por subcategoria — visão consolidada).
   useEffect(() => {
@@ -197,7 +316,7 @@ export const CategoryPage = () => {
 
   // Encontra root para subcategorias. Slugs hierárquicos (ex: "cursos/programacao")
   // mapeiam para o nó raiz pelo primeiro segmento ("cursos"); o leaf é
-  // resolvido server-side via `searchInCategory(slug, ...)`.
+  // resolvido server-side via `/product/search-filtered`.
   const rootSlug = slug.split('/')[0] ?? slug;
   const rootNode = useMemo(() => tree.find(n => n.slug === rootSlug) ?? null, [tree, rootSlug]);
   const subcategories = rootNode?.children ?? [];
@@ -253,11 +372,15 @@ export const CategoryPage = () => {
       <div className="mx-auto w-full max-w-[1280px] px-6 lg:px-10 py-10">
         <div className="lg:grid lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-10">
             <div className="hidden lg:block self-start sticky" style={{ top: 200 }}>
-              <FiltersPanel value={filters} onChange={setFilters} onClear={reset} />
-              {/* MOCK :: LOFN-G04 — facets visuais (condição/tamanho/marca). */}
-              {/* Estes campos NÃO filtram de fato; existem apenas para preview da UX. */}
-              {/* TODO(LOFN-G04): integrar quando o endpoint /facets existir. */}
-              <FacetsMock />
+              <FiltersPanel value={filters} onChange={setFilters} onClear={reset} showStoreFilter={false} />
+              {availableFilters.length > 0 ? (
+                <ProductTypeFiltersPanel
+                  filters={availableFilters}
+                  value={dynamicFilters}
+                  onChange={setDynamicFilters}
+                  onClear={clearDynamicFilters}
+                />
+              ) : null}
             </div>
 
             <main aria-labelledby="results-title">
@@ -296,10 +419,9 @@ export const CategoryPage = () => {
                 <ErrorState
                   message={error}
                   onRetry={() => {
+                    // Limpa o erro — o useEffect refaz a chamada de
+                    // /product/search-filtered automaticamente.
                     setError(null);
-                    void categoriesService
-                      .searchInCategory(effectiveSlug, filters, page)
-                      .then(setResult);
                   }}
                 />
               ) : null}
@@ -344,31 +466,6 @@ export const CategoryPage = () => {
         categoryName={rootNode?.name ?? headerNode.name}
       />
 
-      {/* FAB mobile — abre drawer com filtros (mesmo conteúdo do desktop). */}
-      <button
-        type="button"
-        className="lg:hidden fixed circulou-btn-primary"
-        style={{
-          right: '1.25rem',
-          bottom: '1.25rem',
-          zIndex: 30,
-          minHeight: 48,
-          padding: '0 1.25rem',
-          boxShadow: 'var(--shadow-lg)',
-        }}
-        onClick={() => setDrawerOpen(true)}
-        aria-haspopup="dialog"
-        aria-expanded={drawerOpen}
-      >
-        ☰ Filtros
-      </button>
-
-      {drawerOpen ? (
-        <FiltersDrawer onClose={() => setDrawerOpen(false)}>
-          <FiltersPanel value={filters} onChange={setFilters} onClear={reset} />
-          <FacetsMock />
-        </FiltersDrawer>
-      ) : null}
     </div>
   );
 };
@@ -425,167 +522,5 @@ const EmptyCategory = ({ onClear, onHome }: EmptyCategoryProps) => (
       </button>
     </div>
   </div>
-);
-
-interface FiltersDrawerProps {
-  children: ReactNode;
-  onClose: () => void;
-}
-
-const FiltersDrawer = ({ children, onClose }: FiltersDrawerProps) => (
-  <div
-    role="dialog"
-    aria-modal="true"
-    aria-label="Filtros"
-    className="lg:hidden fixed inset-0 z-50 flex"
-  >
-    <button
-      type="button"
-      aria-label="Fechar filtros"
-      className="absolute inset-0 bg-black/40"
-      onClick={onClose}
-      style={{ border: 'none' }}
-    />
-    <div
-      className="ml-auto h-full w-full max-w-sm overflow-y-auto"
-      style={{
-        background: 'var(--color-surface)',
-        borderLeft: '1px solid var(--color-line)',
-        padding: '1.25rem',
-      }}
-    >
-      <header
-        className="flex justify-between items-center pb-3 mb-4"
-        style={{ borderBottom: '1px solid var(--color-line)' }}
-      >
-        <h2 style={{ fontSize: '1.3rem' }}>Filtros</h2>
-        <button
-          type="button"
-          aria-label="Fechar filtros"
-          onClick={onClose}
-          className="inline-flex items-center justify-center"
-          style={{
-            width: 44,
-            height: 44,
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--color-cedro)',
-            fontSize: '1.4rem',
-            cursor: 'pointer',
-          }}
-        >
-          ✕
-        </button>
-      </header>
-      {children}
-    </div>
-  </div>
-);
-
-/**
- * MOCK :: LOFN-G04 — facets visuais (condição / tamanho / marca).
- * Renderiza a UX de filtros que o backend ainda não suporta de fato.
- * Os controles abaixo NÃO afetam o resultado da busca.
- *
- * TODO(LOFN-G04): conectar a GET /marketplace/categories/:slug/facets.
- */
-const FacetsMock = () => (
-  <div
-    className="mt-4"
-    aria-label="Filtros adicionais (visual, não funcionais)"
-    style={{
-      background: 'var(--color-surface)',
-      border: '1px dashed var(--color-line)',
-      borderRadius: 'var(--radius)',
-      padding: '1rem',
-    }}
-  >
-    <p
-      className="mb-3"
-      style={{
-        fontFamily: 'var(--font-mono)',
-        fontSize: '0.7rem',
-        textTransform: 'uppercase',
-        letterSpacing: '0.1em',
-        color: 'var(--color-mute)',
-      }}
-    >
-      Em breve · facets
-    </p>
-
-    <FacetGroup title="Condição da peça">
-      {['Nova com etiqueta', 'Semi-nova', 'Usada em ótimo estado', 'Usada com sinais'].map(label => (
-        <FacetCheckbox key={label} label={label} />
-      ))}
-    </FacetGroup>
-
-    <FacetGroup title="Tamanho">
-      <div className="grid grid-cols-4 gap-1.5">
-        {['34', '35', '36', '37', '38', '39', '40', '41'].map(size => (
-          <button
-            key={size}
-            type="button"
-            aria-pressed="false"
-            disabled
-            style={{
-              minHeight: 36,
-              borderRadius: 'var(--radius-sm)',
-              border: '1.5px solid var(--color-line)',
-              background: 'var(--color-surface)',
-              color: 'var(--color-ink)',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.8rem',
-              opacity: 0.55,
-            }}
-          >
-            {size}
-          </button>
-        ))}
-      </div>
-    </FacetGroup>
-
-    <FacetGroup title="Marca">
-      {['Nike', 'Adidas', 'Vans', 'Melissa', 'Arezzo', 'Schutz'].map(label => (
-        <FacetCheckbox key={label} label={label} />
-      ))}
-    </FacetGroup>
-  </div>
-);
-
-interface FacetGroupProps {
-  title: string;
-  children: ReactNode;
-}
-
-const FacetGroup = ({ title, children }: FacetGroupProps) => (
-  <div className="mb-4">
-    <h3
-      className="mb-2 flex justify-between items-center"
-      style={{
-        fontFamily: 'var(--font-mono)',
-        fontSize: '0.75rem',
-        textTransform: 'uppercase',
-        letterSpacing: '0.1em',
-        color: 'var(--color-cedro)',
-      }}
-    >
-      {title}
-    </h3>
-    {children}
-  </div>
-);
-
-interface FacetCheckboxProps {
-  label: string;
-}
-
-const FacetCheckbox = ({ label }: FacetCheckboxProps) => (
-  <label
-    className="flex items-center gap-2 py-1.5"
-    style={{ fontSize: '0.9rem', color: 'var(--color-ink)', opacity: 0.6 }}
-  >
-    <input type="checkbox" disabled className="h-4 w-4" />
-    <span>{label}</span>
-  </label>
 );
 

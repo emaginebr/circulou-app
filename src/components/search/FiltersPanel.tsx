@@ -6,9 +6,15 @@ interface FiltersPanelProps {
   value: FilterState;
   onChange: (next: Partial<FilterState>) => void;
   onClear: () => void;
+  showStoreFilter?: boolean;
 }
 
-export const FiltersPanel = ({ value, onChange, onClear }: FiltersPanelProps) => {
+export const FiltersPanel = ({
+  value,
+  onChange,
+  onClear,
+  showStoreFilter = true,
+}: FiltersPanelProps) => {
   const { stores } = useStores();
   const [minLocal, setMinLocal] = useState<string>(
     value.priceMin !== null && value.priceMin !== undefined ? String(value.priceMin) : '',
@@ -36,26 +42,28 @@ export const FiltersPanel = ({ value, onChange, onClear }: FiltersPanelProps) =>
     >
       <h2 className="text-base font-semibold mb-3">Filtros</h2>
 
-      <div className="mb-3">
-        <label htmlFor="filter-store" className="block text-sm font-medium mb-1">
-          Loja
-        </label>
-        <select
-          id="filter-store"
-          className={inputCls}
-          value={value.storeId ?? ''}
-          onChange={e =>
-            onChange({ storeId: e.target.value ? Number(e.target.value) : null })
-          }
-        >
-          <option value="">—</option>
-          {stores.map(s => (
-            <option key={s.storeId} value={s.storeId}>
-              {s.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      {showStoreFilter ? (
+        <div className="mb-3">
+          <label htmlFor="filter-store" className="block text-sm font-medium mb-1">
+            Loja
+          </label>
+          <select
+            id="filter-store"
+            className={inputCls}
+            value={value.storeId ?? ''}
+            onChange={e =>
+              onChange({ storeId: e.target.value ? Number(e.target.value) : null })
+            }
+          >
+            <option value="">—</option>
+            {stores.map(s => (
+              <option key={s.storeId} value={s.storeId}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : null}
 
       <fieldset className="mb-3">
         <legend className="block text-sm font-medium mb-1">
