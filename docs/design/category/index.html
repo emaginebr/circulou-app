@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Circulou — Calçados (Página de Categoria)</title>
+
+  <!-- Fontes Google: idênticas à Home (Alfa Slab One + DM Sans + DM Mono) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Reuso dos tokens da Home (paleta, tipografia, helpers .circulou-*) -->
+  <link rel="stylesheet" href="../home/tokens.css" />
+
+  <style>
+    /*
+     * Página de Categoria — mockup standalone.
+     * Mesmas convenções da Home: classes próprias (NUNCA Tailwind),
+     * comentários inline indicando o equivalente Tailwind para porte futuro.
+     *
+     * Estrutura visual (desktop):
+     *   1. Header global (mesmo da home — sticky)
+     *   2. Breadcrumb + título da categoria + contagem + copy editorial
+     *   3. Banda de subcategorias (chips com count)
+     *   4. Grid principal: sidebar de filtros (280 px) + área de produtos
+     *      4a. Toolbar topo: contagem visível + ordenação
+     *      4b. Grid de 12 produtos (ProductCard reutilizado)
+     *      4c. Paginação (1, 2, 3, …, 5)
+     *   5. Lojas com produtos nesta categoria (carrossel horizontal)
+     *   6. Estado vazio (renderizado ao final como referência visual)
+     *   7. Footer global (mesmo da home)
+     */
+
+    /* ── Layout container — ~ mx-auto max-w-[1280px] px-6 lg:px-10 ── */
+    .container { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; }
+    @media (min-width: 1024px) { .container { padding: 0 2.5rem; } }
+
+    /* ── Header reutilizado da home (idêntico) ──────────────────── */
+    .site-header {
+      background: var(--color-page);
+      border-bottom: 1px solid var(--color-line);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .nav-link {
+      font-size: 0.9rem; font-weight: 500;
+      color: var(--color-cedro);
+      padding: 0.5rem 0.25rem; position: relative;
+      text-decoration: none;
+    }
+    .nav-link:hover { color: var(--color-cobre); }
+    .nav-link[data-active]::after {
+      content: ""; position: absolute;
+      left: 0; right: 0; bottom: -2px;
+      height: 2px; background: var(--color-ambar);
+      border-radius: 2px;
+    }
+    .search-input {
+      width: 100%; height: 44px;
+      border-radius: 999px;
+      border: 1.5px solid var(--color-line);
+      background: var(--color-surface);
+      padding: 0 1rem 0 2.75rem;
+      font-family: var(--font-sans);
+      color: var(--color-tinta);
+    }
+    .search-input:focus {
+      outline: none; border-color: var(--color-oliva);
+      box-shadow: 0 0 0 3px rgba(74, 75, 44, 0.18);
+    }
+
+    /* ── Hero compacto da categoria ──────────────────────────────────
+     * Bloco "introdutório" — não é o hero massivo da home. Usa fundo
+     * areia (tom morno) para distinguir-se do branco do conteúdo abaixo
+     * sem competir com o oliva-saturado do hero principal. Mantém o
+     * "sol-blob" âmbar do branding em escala reduzida. */
+    .cat-hero {
+      background: var(--color-surface-warm);
+      position: relative; overflow: hidden;
+      border-bottom: 1px solid var(--color-line);
+    }
+    .cat-hero::before {
+      content: ""; position: absolute;
+      width: 280px; height: 280px;
+      right: -80px; top: -120px;
+      background: var(--color-ambar);
+      border-radius: 48% 52% 38% 62% / 42% 38% 62% 58%;
+      opacity: 0.45; pointer-events: none;
+    }
+    .breadcrumb {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-family: var(--font-mono); font-size: var(--text-caption);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--color-mute); margin-bottom: 1rem;
+    }
+    .breadcrumb a { color: var(--color-mute); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--color-cobre); }
+    .breadcrumb [aria-current="page"] { color: var(--color-cedro); font-weight: 500; }
+    .breadcrumb-sep { color: var(--color-line); }
+
+    .cat-title {
+      font-size: var(--text-display-lg);
+      color: var(--color-cedro);
+      margin-bottom: 0.75rem;
+    }
+    .cat-count {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-family: var(--font-mono); font-size: 0.85rem;
+      color: var(--color-oliva); margin-bottom: 1rem;
+    }
+    .cat-count strong {
+      font-family: var(--font-display); font-size: 1.15rem;
+      color: var(--color-cobre); font-weight: 400;
+    }
+    .cat-copy {
+      max-width: 60ch;
+      color: var(--color-ink-soft);
+      font-size: var(--text-body-lg);
+    }
+
+    /* ── Subcategorias (chips com count) ──────────────────────────────
+     * Cada chip é um link filtro. O count vai num "pill" interno em
+     * tom areia para criar separação visual sem precisar de fundo
+     * sólido. Layout flex-wrap responde a 0..15 chips sem quebrar. */
+    .subcat-bar {
+      background: var(--color-page);
+      padding: 1.25rem 0;
+      border-bottom: 1px solid var(--color-line);
+      position: sticky; top: 113px; z-index: 40;
+      /* 113px = altura header (~64) + barra de cats (~49) na home */
+    }
+    .subcat-list {
+      display: flex; flex-wrap: wrap; gap: 0.6rem;
+      list-style: none; padding: 0; margin: 0;
+    }
+    .subcat-chip {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.55rem 1rem;
+      border-radius: 999px;
+      background: var(--color-surface);
+      border: 1.5px solid var(--color-line);
+      color: var(--color-cedro);
+      font-size: 0.9rem; font-weight: 500;
+      text-decoration: none;
+      transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+      min-height: 40px;
+    }
+    .subcat-chip:hover {
+      background: var(--color-cru);
+      border-color: var(--color-cedro);
+    }
+    .subcat-chip:focus-visible {
+      outline: 3px solid var(--color-ambar);
+      outline-offset: 2px;
+    }
+    .subcat-chip--active {
+      background: var(--color-cedro);
+      border-color: var(--color-cedro);
+      color: var(--color-cru);
+    }
+    .subcat-chip--active .subcat-count {
+      background: var(--color-cobre);
+      color: var(--color-cru);
+    }
+    .subcat-count {
+      display: inline-flex; align-items: center;
+      padding: 0.1rem 0.55rem;
+      border-radius: 999px;
+      background: var(--color-areia-soft);
+      color: var(--color-cedro);
+      font-family: var(--font-mono);
+      font-size: 0.7rem; font-weight: 500;
+    }
+
+    /* ── Layout principal: sidebar (filtros) + conteúdo (produtos) ─── */
+    .cat-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 2.5rem;
+      padding: 2.5rem 0 4rem;
+    }
+    /* Filhos de grid têm min-width: auto por padrão e podem extrapolar
+       o `1fr` empurrando a página → barra horizontal. Forçar min-width: 0
+       em todos os filhos faz o grid respeitar a coluna. */
+    .cat-layout > * { min-width: 0; }
+    @media (max-width: 1023px) {
+      .cat-layout { grid-template-columns: 1fr; }
+      /* Em tablet/mobile a sidebar vai virar drawer (ver mobile.html) */
+      .filters-sidebar { display: none; }
+    }
+
+    /* Defesa final contra overflow horizontal do conteúdo da página
+       (badges com rotate, blob âmbar atrás de seções editoriais, etc.). */
+    html, body { overflow-x: clip; }
+
+    /* ── Sidebar de filtros ─────────────────────────────────────────── */
+    .filters-sidebar {
+      position: sticky; top: 200px; align-self: start;
+      max-height: calc(100vh - 220px);
+      overflow-y: auto;
+      padding-right: 0.5rem;
+    }
+    .filter-group { margin-bottom: 1.75rem; }
+    .filter-title {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--color-cedro);
+      margin-bottom: 0.85rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .filter-clear {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      color: var(--color-cobre);
+      text-decoration: underline;
+      text-transform: none; letter-spacing: 0;
+    }
+    .filter-list {
+      list-style: none; padding: 0; margin: 0;
+      display: flex; flex-direction: column; gap: 0.5rem;
+    }
+    .filter-option {
+      display: flex; align-items: center; gap: 0.6rem;
+      cursor: pointer;
+      padding: 0.4rem 0.25rem;
+      min-height: 36px;
+      font-size: 0.9rem;
+      color: var(--color-ink);
+    }
+    .filter-option input {
+      width: 18px; height: 18px;
+      accent-color: var(--color-cedro);
+      flex-shrink: 0;
+    }
+    .filter-option .opt-count {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--color-mute);
+    }
+    .filter-option:hover { background: var(--color-areia-soft); border-radius: var(--radius-sm); }
+
+    /* Range de preço — slider visual (mockup; em prod, dual-thumb input) */
+    .price-range-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .price-input {
+      width: 100%;          /* respeita a coluna 1fr do .price-range-row */
+      min-width: 0;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--color-line);
+      background: var(--color-surface);
+      padding: 0 0.65rem;
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      color: var(--color-ink);
+    }
+    .price-input:focus {
+      outline: none;
+      border-color: var(--color-oliva);
+      box-shadow: 0 0 0 3px rgba(74, 75, 44, 0.18);
+    }
+    .price-track {
+      height: 4px;
+      background: var(--color-line);
+      border-radius: 999px;
+      position: relative;
+      margin: 0.85rem 0 0.25rem;
+    }
+    .price-track-fill {
+      position: absolute;
+      left: 15%; right: 32%;
+      top: 0; bottom: 0;
+      background: var(--color-cedro);
+      border-radius: 999px;
+    }
+    .price-thumb {
+      width: 16px; height: 16px;
+      background: var(--color-cobre);
+      border: 2px solid var(--color-cru);
+      border-radius: 50%;
+      position: absolute; top: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Tamanhos — grid de pills (XS..GG..40..44 etc) */
+    .size-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.4rem;
+    }
+    .size-pill {
+      min-height: 36px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--color-line);
+      background: var(--color-surface);
+      color: var(--color-ink);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .size-pill:hover { background: var(--color-areia-soft); }
+    .size-pill[aria-pressed="true"] {
+      background: var(--color-cedro);
+      color: var(--color-cru);
+      border-color: var(--color-cedro);
+    }
+    .size-pill:focus-visible {
+      outline: 2px solid var(--color-cobre);
+      outline-offset: 2px;
+    }
+
+    /* Toggle "apenas em promoção" — switch visual */
+    .filter-switch {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.7rem 0; min-height: 44px;
+      font-size: 0.9rem; cursor: pointer;
+    }
+    .switch-track {
+      width: 40px; height: 22px;
+      background: var(--color-line);
+      border-radius: 999px;
+      position: relative;
+      transition: background 120ms ease;
+    }
+    .switch-track::after {
+      content: ""; position: absolute;
+      top: 2px; left: 2px;
+      width: 18px; height: 18px;
+      background: var(--color-cru);
+      border-radius: 50%;
+      transition: transform 120ms ease;
+      box-shadow: var(--shadow-sm);
+    }
+    input[type="checkbox"]:checked + .switch-track {
+      background: var(--color-cedro);
+    }
+    input[type="checkbox"]:checked + .switch-track::after {
+      transform: translateX(18px);
+    }
+
+    /* ── Toolbar topo da listagem (count + ordenação) ─────────────── */
+    .list-toolbar {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 1rem; flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--color-line);
+    }
+    .list-meta {
+      font-size: 0.9rem; color: var(--color-mute);
+    }
+    .list-meta strong { color: var(--color-cedro); font-weight: 600; }
+    .sort-wrap {
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .sort-wrap label {
+      font-size: 0.85rem;
+      color: var(--color-mute);
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .sort-select {
+      min-height: 40px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--color-line);
+      background: var(--color-surface);
+      padding: 0 2.5rem 0 0.85rem;
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      color: var(--color-ink);
+      appearance: none;
+      cursor: pointer;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%234D2801' d='M1 1l5 5 5-5'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 0.85rem center;
+    }
+
+    /* ── Grid de produtos (4 col em desktop) ──────────────────────── */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem 1rem;
+    }
+    @media (max-width: 1199px) { .product-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 767px) { .product-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .product-card {
+      background: var(--color-surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      border: 1px solid var(--color-line);
+      position: relative;
+    }
+    .product-card .img {
+      aspect-ratio: 3 / 4;
+      background-size: cover; background-position: center;
+      background-color: var(--color-areia-soft);
+      position: relative;
+    }
+    .product-fav {
+      position: absolute; top: 10px; right: 10px;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: rgba(245,236,229,0.9);
+      backdrop-filter: blur(4px);
+      border: none; cursor: pointer;
+      color: var(--color-cedro);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.05rem;
+    }
+    .product-fav:hover { color: var(--color-cobre); }
+    .product-fav:focus-visible {
+      outline: 2px solid var(--color-cobre);
+      outline-offset: 2px;
+    }
+    .product-badge {
+      position: absolute; top: 10px; left: 10px;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 500;
+    }
+    .product-badge--sale {
+      background: var(--color-cobre);
+      color: var(--color-cru);
+    }
+    .product-badge--new {
+      background: var(--color-ambar);
+      color: var(--color-cedro);
+    }
+    .product-card .body {
+      padding: 0.85rem 0.95rem 1rem;
+      display: flex; flex-direction: column; gap: 0.35rem;
+      flex: 1;
+    }
+    .brand-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-cedro);
+    }
+    .product-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--color-tinta);
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .product-meta {
+      font-size: 0.78rem;
+      color: var(--color-mute);
+    }
+    .price-row {
+      display: flex; align-items: baseline; gap: 0.5rem; margin-top: auto;
+      padding-top: 0.4rem;
+    }
+    .price-now {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      color: var(--color-cobre);
+    }
+    .price-old {
+      font-size: 0.82rem;
+      color: var(--color-mute);
+      text-decoration: line-through;
+    }
+    .price-discount {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--color-success);
+      background: var(--color-oliva-soft);
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+    }
+    .product-store {
+      font-size: 0.75rem;
+      color: var(--color-mute);
+      display: flex; align-items: center; gap: 0.35rem;
+      padding-top: 0.35rem;
+      border-top: 1px dashed var(--color-line);
+      margin-top: 0.4rem;
+    }
+    .product-store::before {
+      content: "○"; color: var(--color-oliva);
+    }
+
+    /* ── Paginação ─────────────────────────────────────────────────── */
+    .pagination {
+      display: flex; justify-content: center; align-items: center;
+      gap: 0.4rem;
+      margin-top: 3rem;
+      flex-wrap: wrap;
+    }
+    .page-btn {
+      min-width: 44px; min-height: 44px;
+      padding: 0 0.85rem;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--color-line);
+      background: var(--color-surface);
+      color: var(--color-cedro);
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .page-btn:hover {
+      background: var(--color-areia-soft);
+      border-color: var(--color-cedro);
+    }
+    .page-btn:focus-visible {
+      outline: 3px solid var(--color-ambar);
+      outline-offset: 2px;
+    }
+    .page-btn[aria-current="page"] {
+      background: var(--color-cedro);
+      color: var(--color-cru);
+      border-color: var(--color-cedro);
+      font-family: var(--font-display);
+    }
+    .page-btn[disabled] {
+      opacity: 0.4; cursor: not-allowed;
+    }
+    .page-ellipsis {
+      padding: 0 0.4rem; color: var(--color-mute);
+      font-family: var(--font-mono);
+    }
+
+    /* ── Lojas com produtos nesta categoria ───────────────────────── */
+    .stores-section {
+      background: var(--color-areia);
+      padding: var(--space-section-tight) 0;
+      border-top: 1px solid var(--color-line);
+    }
+    .stores-header {
+      display: flex; justify-content: space-between; align-items: end;
+      margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap;
+    }
+    .stores-rail {
+      display: flex; gap: 1rem;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-padding: 1rem;
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-cedro) transparent;
+      padding-bottom: 0.5rem;
+      margin: 0 -1.5rem;
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+    @media (min-width: 1024px) {
+      .stores-rail { margin: 0 -2.5rem; padding-left: 2.5rem; padding-right: 2.5rem; }
+    }
+    .stores-rail > * {
+      flex: 0 0 240px;
+      scroll-snap-align: start;
+    }
+    .store-card {
+      background: var(--color-surface);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      border: 1px solid var(--color-line);
+      display: flex; flex-direction: column; gap: 0.85rem;
+      text-decoration: none;
+      color: var(--color-ink);
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+    .store-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+    .store-card:focus-within {
+      outline: 2px solid var(--color-cobre);
+      outline-offset: 3px;
+    }
+    .store-logo {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background-size: cover; background-position: center;
+      background-color: var(--color-areia-soft);
+      border: 1.5px solid var(--color-line);
+      flex-shrink: 0;
+    }
+    .store-name {
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--color-cedro);
+    }
+    .store-meta {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--color-mute);
+      letter-spacing: 0.05em;
+    }
+    .store-cta {
+      margin-top: auto;
+      font-size: 0.85rem; font-weight: 600;
+      color: var(--color-cobre);
+    }
+
+    /* ── Estado vazio (referência visual ao final) ─────────────────── */
+    .empty-ref {
+      background: var(--color-page);
+      border-top: 1px dashed var(--color-line);
+      padding: 4rem 0;
+      text-align: center;
+    }
+    .empty-ref-card {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem;
+      background: var(--color-surface);
+      border: 1px dashed var(--color-line);
+      border-radius: var(--radius-lg);
+    }
+    .empty-illu {
+      width: 96px; height: 96px;
+      margin: 0 auto 1.25rem;
+      background: var(--color-ambar);
+      border-radius: var(--radius-blob);
+      position: relative;
+    }
+    .empty-illu::before {
+      content: "○"; position: absolute;
+      inset: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 3rem; color: var(--color-cedro);
+      font-family: var(--font-display);
+    }
+
+    /* ── Footer (idêntico à home) ─────────────────────────────────── */
+    .site-footer {
+      background: var(--color-tinta);
+      color: var(--color-cru);
+    }
+    .footer-link { color: var(--color-areia); font-size: 0.9rem; text-decoration: none; }
+    .footer-link:hover { color: var(--color-ambar); }
+
+    /* ── Utilities mínimas (idênticas à home) ─────────────────────── */
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .items-center { align-items: center; }
+    .items-end { align-items: end; }
+    .justify-between { justify-content: space-between; }
+    .gap-2 { gap: 0.5rem; }
+    .gap-4 { gap: 1rem; }
+    .gap-6 { gap: 1.5rem; }
+    .gap-8 { gap: 2rem; }
+    .mt-2 { margin-top: 0.5rem; } .mt-4 { margin-top: 1rem; }
+    .mt-6 { margin-top: 1.5rem; } .mt-8 { margin-top: 2rem; }
+    .mb-2 { margin-bottom: 0.5rem; } .mb-4 { margin-bottom: 1rem; }
+    .mb-6 { margin-bottom: 1.5rem; } .mb-8 { margin-bottom: 2rem; }
+    .py-section-tight { padding-top: var(--space-section-tight); padding-bottom: var(--space-section-tight); }
+    .grid-3 { display: grid; gap: 1rem; grid-template-columns: 2fr 1fr 1fr; }
+    .grid-4 { display: grid; gap: 1rem; grid-template-columns: repeat(4, 1fr); }
+    .text-center { text-align: center; }
+
+    .skip-link {
+      position: absolute; top: -40px; left: 0;
+      background: var(--color-cedro); color: var(--color-cru);
+      padding: 0.5rem 1rem; z-index: 100;
+    }
+    .skip-link:focus { top: 0; }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Pular para o conteúdo principal</a>
+
+  <!-- ─────────── HEADER GLOBAL (idêntico à Home) ─────────── -->
+  <header class="site-header">
+    <div class="container flex items-center justify-between" style="padding-top: 1rem; padding-bottom: 1rem;">
+      <a href="../home/index.html" class="flex items-center gap-2" style="text-decoration: none;">
+        <span aria-hidden="true" style="
+          width: 36px; height: 36px; background: var(--color-ambar);
+          clip-path: polygon(50% 0%, 60% 18%, 78% 14%, 74% 32%, 92% 36%,
+            80% 52%, 96% 64%, 78% 70%, 84% 90%, 64% 84%, 50% 100%,
+            36% 84%, 16% 90%, 22% 70%, 4% 64%, 20% 52%, 8% 36%, 26% 32%,
+            22% 14%, 40% 18%);
+        "></span>
+        <span style="font-family: var(--font-display); font-size: 1.6rem; color: var(--color-oliva); letter-spacing: 0.02em;">
+          Circulou
+        </span>
+      </a>
+
+      <div style="flex: 1; max-width: 480px; margin: 0 2rem; position: relative;">
+        <span aria-hidden="true" style="
+          position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
+          color: var(--color-mute); font-size: 1.1rem;
+        ">🔍</span>
+        <label for="q" class="sr-only">Buscar peças</label>
+        <input id="q" type="search" class="search-input" placeholder="Busque por marca, peça ou estilo…" />
+      </div>
+
+      <nav class="flex items-center gap-6" aria-label="Navegação principal">
+        <a href="#" class="nav-link" data-active>Comprar</a>
+        <a href="#" class="nav-link">Quero vender</a>
+        <a href="#" class="nav-link">ONGs</a>
+        <a href="#" class="nav-link" aria-label="Favoritos">♡</a>
+        <a href="#" class="nav-link" aria-label="Entrar">Entrar</a>
+        <a href="#" class="circulou-btn-primary" aria-label="Sacola — 0 itens" style="min-height: 40px; padding: 0.5rem 1rem;">
+          Sacola <span style="
+            background: var(--color-ambar); color: var(--color-cedro);
+            border-radius: 999px; padding: 0.05rem 0.45rem; font-size: 0.8rem;
+            font-weight: 700;
+          ">0</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Barra de categorias (idêntica à home) — "Calçados" fica ativo -->
+    <div style="background: var(--color-surface-warm); border-top: 1px solid var(--color-line);">
+      <div class="container flex items-center gap-6" style="padding-top: 0.6rem; padding-bottom: 0.6rem; overflow-x: auto;">
+        <a href="#" class="nav-link">✦ Novas com etiquetas</a>
+        <a href="#" class="nav-link">Mais favoritadas</a>
+        <a href="#" class="nav-link">Curadoria do Bem</a>
+        <a href="#" class="nav-link">Marcas</a>
+        <a href="#" class="nav-link">Last Chance</a>
+        <a href="#" class="nav-link">Feminino</a>
+        <a href="#" class="nav-link">Masculino</a>
+        <a href="#" class="nav-link" data-active>Calçados</a>
+        <a href="#" class="nav-link">Acessórios</a>
+      </div>
+    </div>
+  </header>
+
+
+  <main id="main">
+
+    <!-- ─────────── HERO DA CATEGORIA ─────────── -->
+    <section class="cat-hero" aria-labelledby="cat-title">
+      <div class="container" style="position: relative; z-index: 2; padding-top: 2.5rem; padding-bottom: 2.5rem;">
+        <!-- Breadcrumb a11y: nav com aria-label + aria-current na página atual -->
+        <nav class="breadcrumb" aria-label="Caminho de navegação">
+          <a href="../home/index.html">Início</a>
+          <span class="breadcrumb-sep" aria-hidden="true">›</span>
+          <a href="#">Comprar</a>
+          <span class="breadcrumb-sep" aria-hidden="true">›</span>
+          <span aria-current="page">Calçados</span>
+        </nav>
+
+        <h1 id="cat-title" class="cat-title">Calçados</h1>
+
+        <p class="cat-count" aria-live="polite">
+          <strong>247</strong> peças circulando agora · <span style="color: var(--color-mute);">42 lojas parceiras</span>
+        </p>
+
+        <p class="cat-copy">
+          De tênis garimpados a botas que atravessam estações — calçados que já caminharam por aí
+          e estão prontos pra abrir trilha em novos pés. Curadoria editorial, peças autênticas,
+          preço justo.
+        </p>
+      </div>
+    </section>
+
+
+    <!-- ─────────── BANDA DE SUBCATEGORIAS (CHIPS COM COUNT) ─────────── -->
+    <section class="subcat-bar" aria-labelledby="subcat-title">
+      <div class="container">
+        <h2 id="subcat-title" class="sr-only">Subcategorias de Calçados</h2>
+        <ul class="subcat-list" role="list">
+          <li>
+            <a href="#" class="subcat-chip subcat-chip--active" aria-current="page">
+              Tudo <span class="subcat-count">247</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="subcat-chip">
+              Tênis <span class="subcat-count">124</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="subcat-chip">
+              Sapatilhas <span class="subcat-count">38</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="subcat-chip">
+              Botas <span class="subcat-count">52</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="subcat-chip">
+              Sandálias <span class="subcat-count">33</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+
+    <!-- ─────────── LAYOUT PRINCIPAL: SIDEBAR + LISTAGEM ─────────── -->
+    <div class="container">
+      <div class="cat-layout">
+
+        <!-- ── Sidebar de filtros (desktop ≥1024 px) ── -->
+        <aside class="filters-sidebar" aria-labelledby="filters-title">
+          <h2 id="filters-title" class="sr-only">Filtros</h2>
+
+          <!-- Faixa de preço -->
+          <div class="filter-group">
+            <h3 class="filter-title">
+              Faixa de preço
+              <button class="filter-clear" type="button">limpar</button>
+            </h3>
+            <div class="price-track" aria-hidden="true">
+              <div class="price-track-fill"></div>
+              <div class="price-thumb" style="left: 15%;"></div>
+              <div class="price-thumb" style="left: 68%;"></div>
+            </div>
+            <div class="price-range-row">
+              <input type="text" class="price-input" value="R$ 30" aria-label="Preço mínimo" />
+              <input type="text" class="price-input" value="R$ 280" aria-label="Preço máximo" />
+            </div>
+          </div>
+
+          <!-- Condição da peça -->
+          <div class="filter-group">
+            <h3 class="filter-title">Condição da peça</h3>
+            <ul class="filter-list">
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox" />
+                  <span>Nova com etiqueta</span>
+                  <span class="opt-count">38</span>
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox" checked />
+                  <span>Semi-nova</span>
+                  <span class="opt-count">112</span>
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox" />
+                  <span>Usada em ótimo estado</span>
+                  <span class="opt-count">71</span>
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox" />
+                  <span>Usada com sinais</span>
+                  <span class="opt-count">26</span>
+                </label>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Tamanho -->
+          <div class="filter-group">
+            <h3 class="filter-title">
+              Tamanho
+              <button class="filter-clear" type="button">limpar</button>
+            </h3>
+            <div class="size-grid" role="group" aria-label="Tamanho de calçado">
+              <button class="size-pill" type="button" aria-pressed="false">34</button>
+              <button class="size-pill" type="button" aria-pressed="false">35</button>
+              <button class="size-pill" type="button" aria-pressed="true">36</button>
+              <button class="size-pill" type="button" aria-pressed="true">37</button>
+              <button class="size-pill" type="button" aria-pressed="false">38</button>
+              <button class="size-pill" type="button" aria-pressed="false">39</button>
+              <button class="size-pill" type="button" aria-pressed="false">40</button>
+              <button class="size-pill" type="button" aria-pressed="false">41</button>
+              <button class="size-pill" type="button" aria-pressed="false">42</button>
+              <button class="size-pill" type="button" aria-pressed="false">43</button>
+              <button class="size-pill" type="button" aria-pressed="false">44</button>
+              <button class="size-pill" type="button" aria-pressed="false">45</button>
+            </div>
+          </div>
+
+          <!-- Marca (busca + checkbox list) -->
+          <div class="filter-group">
+            <h3 class="filter-title">Marca</h3>
+            <input type="search" class="price-input" placeholder="Buscar marca…" aria-label="Buscar marca" style="width: 100%; margin-bottom: 0.6rem;" />
+            <ul class="filter-list">
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox" checked />
+                  <span>Adidas</span>
+                  <span class="opt-count">22</span>
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox" />
+                  <span>Nike</span>
+                  <span class="opt-count">31</span>
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox" />
+                  <span>Vans</span>
+                  <span class="opt-count">14</span>
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox" />
+                  <span>Melissa</span>
+                  <span class="opt-count">19</span>
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox" />
+                  <span>Arezzo</span>
+                  <span class="opt-count">11</span>
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox" />
+                  <span>Schutz</span>
+                  <span class="opt-count">8</span>
+                </label>
+              </li>
+            </ul>
+            <button class="filter-clear" type="button" style="margin-top: 0.6rem;">Ver todas as marcas (42) →</button>
+          </div>
+
+          <!-- Apenas em promoção (toggle) -->
+          <div class="filter-group">
+            <label class="filter-switch">
+              <span style="display: flex; flex-direction: column; gap: 0.15rem;">
+                <strong style="color: var(--color-cedro); font-weight: 600;">Apenas em promoção</strong>
+                <span style="font-size: 0.78rem; color: var(--color-mute);">Peças com desconto ativo</span>
+              </span>
+              <input type="checkbox" style="position: absolute; opacity: 0; pointer-events: none;" />
+              <span class="switch-track" aria-hidden="true"></span>
+            </label>
+          </div>
+        </aside>
+
+
+        <!-- ── Conteúdo principal: toolbar + grid + paginação ── -->
+        <section aria-labelledby="results-title">
+          <h2 id="results-title" class="sr-only">Resultados</h2>
+
+          <!-- Toolbar topo -->
+          <div class="list-toolbar">
+            <p class="list-meta" aria-live="polite">
+              Mostrando <strong>1–12</strong> de <strong>247</strong> peças
+            </p>
+            <div class="sort-wrap">
+              <label for="sort">Ordenar por</label>
+              <select id="sort" class="sort-select">
+                <option value="relevance" selected>Relevância</option>
+                <option value="price-asc">Menor preço</option>
+                <option value="price-desc">Maior preço</option>
+                <option value="discount">Maior desconto</option>
+                <option value="recent">Mais recentes</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Grid de produtos (12 cards = 1ª página) -->
+          <div class="product-grid" role="list" aria-label="Calçados disponíveis">
+
+            <article class="product-card circulou-card" role="listitem">
+              <div class="img" style="background-image: url('https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop');">
+                <span class="product-badge product-badge--sale">−65%</span>
+                <button class="product-fav" type="button" aria-label="Favoritar peça">♡</button>
+              </div>
+              <div class="body">
+                <span class="brand-label">Nike</span>
+                <span class="product-name">Air Max 90 vermelho retrô</span>
+                <span class="product-meta">Tam. 39 · semi-novo</span>
+                <div class="price-row">
+                  <span class="price-now">R$ 219,00</span>
+                  <span class="price-old">R$ 629,00</span>
+                </div>
+                <span class="product-store">Brechó Vintage SP · 12 peças</span>
+              </div>
+            </article>
+
+            <article class="product-card circulou-card" role="listitem">
+              <div class="img" style="background-image: url('https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=600&auto=format&fit=crop');">
+                <span class="product-badge product-badge--new">Novo c/ etiqueta</span>
+                <button class="product-fav" type="button" aria-label="Favoritar peça">♡</button>
+              </div>
+              <div class="body">
+                <span class="brand-label">Adidas</span>
+                <span class="product-name">Stan Smith branco clássico</span>
+                <span class="product-meta">Tam. 38 · novo c/ etiqueta</span>
+                <div class="price-row">
+                  <span class="price-now">R$ 289,00</span>
+                  <span class="price-old">R$ 549,00</span>
+                </div>
+                <span class="product-store">Garimpo da Lia</span>
+              </div>
+            </article>
+
+            <article class="product-card circulou-card" role="listitem">
+              <div class="img" style="background-image: url('https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=600&auto=format&fit=crop');">
+                <button class="product-fav" type="button" aria-label="Favoritar peça">♡</button>
+              </div>
+              <div class="body">
+                <span class="brand-label">Vans</span>
+                <span class="product-name">Old Skool preto, lona</span>
+                <span class="product-meta">Tam. 40 · ótimo estado</span>
+                <div class="price-row">
+                  <span class="price-now">R$ 119,00</span>
+                  <span class="price-old">R$ 369,00</span>
+                </div>
+                <span class="product-store">Sebo da Moda</span>
+              </div>
+            </article>
+
+            <article class="product-card circulou-card" role="listitem">
+              <div class="img" style="background-image: url('https://images.unsplash.com/photo-1605348532760-6753d2c43329?w=600&auto=format&fit=crop');">
+                <span class="product-badge product-badge--sale">−72%</span>
+                <button class="product-fav" type="button" aria-label="Favoritar peça">♡</button>
+              </div>
+              <div class="body">
+                <span class="brand-label">Melissa</span>
+                <span class="product-name">Sapatilha bicolor caramelo</span>
+                <span class="product-meta">Tam. 36 · pouco uso</span>
+                <div class="price-row">
+                  <span class="price-now">R$ 79,00</span>
+                  <span class="price-old">R$ 289,00</span>
+                </div>
+                <span class="product-store">Brechó Sol Lunar</span>
+              </div>
+            </article>
+
+            <article class="product-card circulou-card" role="listitem">
+              <div class="img" style="background-image: url('https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=600&auto=format&fit=crop');">
+                <button class="product-fav" type="button" aria-label="Favoritar peça">♡</button>
+              </div>
+              <div class="body">
+                <span class="brand-label">Arezzo</span>
+                <span class="product-name">Bota cano alto camurça</span>
+                <span class="product-meta">Tam. 37 · semi-novo</span>
+                <div class="price-row">
+                  <span class="price-now">R$ 249,00</span>
+                  <span class="price-old">R$ 799,00</span>
+                </div>
+                <span class="product-store">Atelier do Brechó</span>
+              </div>
+            </article>
+
+            <article class="product-card circulou-card" role="listitem">
+              <div class="img" style="background-image: url('https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600&auto=format&fit=crop');">
+                <span class="product-badge product-badge--sale">−55%</span>
+                <button class="product-fav" type="button" aria-label="Favoritar peça">♡</button>
+              </div>
+              <div class="body">
+                <span class="brand-label">Converse</span>
+                <span class="product-name">Chuck Taylor amarelo mostarda</span>
+                <span class="product-meta">Tam. 38 · ótimo estado</span>
+                <div class="price-row">
+                  <span class="price-now">R$ 99,00</span>
+                  <span class="price-old">R$ 219,00</span>
+                </div>
+                <span class="product-store">Garimpo da Lia · 8 peças</span>
+              </div>
+            </article>
+
+            <article class="product-card circulou-card" role="listitem">
+              <div class="img" style="background-image: url('https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&auto=format&fit=crop');">
+                <button class="product-fav" type="button" aria-label="Favoritar peça">♡</button>
+              </div>
+              <div class="body">
+                <span class="brand-label">Schutz</span>
+                <span class="product-name">Sandália plataforma cobre</span>
+                <span class="product-meta">Tam. 36 · novo c/ etiqueta</span>
+                <div class="price-row">
+                  <span class="price-now">R$ 189,00</span>
+                  <span class="price-old">R$ 549,00</span>
+                </div>
+                <span class="product-store">Brechó Vintage SP</span>
+              </div>
+            </article>
+
+            <article class="product-card circulou-card" role="listitem">
+              <div class="img" style="background-image: url('https://images.unsplash.com/photo-1539185441755-769473a23570?w=600&auto=format&fit=crop');">
+                <span class="product-badge product-badge--sale">−40%</span>
+                <button class="product-fav" type="button" aria-label="Favoritar peça">♡</button>
+              </div>
+              <div class="body">
+                <span class="brand-label">Reebok</span>
+                <span class="product-name">Classic Leather areia</span>
+                <span class="product-meta">Tam. 41 · semi-novo</span>
+                <div class="price-row">
+                  <span class="price-now">R$ 149,00</span>
+                  <span class="price-old">R$ 249,00</span>
+                </div>
+                <span class="product-store">Sebo da Moda</span>
+              </div>
+            </article>
+
+            <article class="product-card circulou-card" role="listitem">
+              <div class="img" style="background-image: url('https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=600&auto=format&fit=crop');">
+                <button class="product-fav" type="button" aria-label="Favoritar peça">♡</button>
+              </div>
+              <div class="body">
+                <span class="brand-label">New Balance</span>
+                <span class="product-name">990 v5 cinza grafite</span>
+                <span class="product-meta">Tam. 42 · pouco uso</span>
+                <div class="price-row">
+                  <span class="price-now">R$ 459,00</span>
+                  <span class="price-old">R$ 1.299,00</span>
+                </div>
+                <span class="product-store">Atelier do Brechó · 4 peças</span>
+              </div>
+            </article>
+
+            <article class="product-card circulou-card" role="listitem">
+              <div class="img" style="background-image: url('https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=600&auto=format&fit=crop');">
+                <span class="product-badge product-badge--sale">−68%</span>
+                <button class="product-fav" type="button" aria-label="Favoritar peça">♡</button>
+              </div>
+              <div class="body">
+                <span class="brand-label">Havaianas</span>
+                <span class="product-name">Slim flatform bege</span>
+                <span class="product-meta">Tam. 35 · novo c/ etiqueta</span>
+                <div class="price-row">
+                  <span class="price-now">R$ 39,00</span>
+                  <span class="price-old">R$ 119,00</span>
+                </div>
+                <span class="product-store">Brechó Sol Lunar</span>
+              </div>
+            </article>
+
+            <article class="product-card circulou-card" role="listitem">
+              <div class="img" style="background-image: url('https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=600&auto=format&fit=crop');">
+                <button class="product-fav" type="button" aria-label="Favoritar peça">♡</button>
+              </div>
+              <div class="body">
+                <span class="brand-label">Dr. Martens</span>
+                <span class="product-name">1460 cherry red, couro</span>
+                <span class="product-meta">Tam. 38 · ótimo estado</span>
+                <div class="price-row">
+                  <span class="price-now">R$ 599,00</span>
+                  <span class="price-old">R$ 1.499,00</span>
+                </div>
+                <span class="product-store">Brechó Vintage SP</span>
+              </div>
+            </article>
+
+            <article class="product-card circulou-card" role="listitem">
+              <div class="img" style="background-image: url('https://images.unsplash.com/photo-1578116922645-3976907a7671?w=600&auto=format&fit=crop');">
+                <span class="product-badge product-badge--sale">−50%</span>
+                <button class="product-fav" type="button" aria-label="Favoritar peça">♡</button>
+              </div>
+              <div class="body">
+                <span class="brand-label">Capodarte</span>
+                <span class="product-name">Mocassim couro caramelo</span>
+                <span class="product-meta">Tam. 39 · semi-novo</span>
+                <div class="price-row">
+                  <span class="price-now">R$ 199,00</span>
+                  <span class="price-old">R$ 399,00</span>
+                </div>
+                <span class="product-store">Garimpo da Lia</span>
+              </div>
+            </article>
+
+          </div>
+
+          <!-- Paginação 1, 2, 3, …, 5 -->
+          <nav class="pagination" aria-label="Paginação dos resultados">
+            <a href="#" class="page-btn" aria-disabled="true" aria-label="Página anterior" tabindex="-1" style="opacity: 0.4; pointer-events: none;">←</a>
+            <a href="#" class="page-btn" aria-current="page" aria-label="Página 1, atual">1</a>
+            <a href="#" class="page-btn" aria-label="Página 2">2</a>
+            <a href="#" class="page-btn" aria-label="Página 3">3</a>
+            <span class="page-ellipsis" aria-hidden="true">…</span>
+            <a href="#" class="page-btn" aria-label="Página 5, última">5</a>
+            <a href="#" class="page-btn" aria-label="Próxima página">→</a>
+          </nav>
+
+        </section>
+      </div>
+    </div>
+
+
+    <!-- ─────────── LOJAS COM PRODUTOS NESTA CATEGORIA ─────────── -->
+    <section class="stores-section" aria-labelledby="stores-title">
+      <div class="container">
+        <header class="stores-header">
+          <div>
+            <span class="circulou-tag" style="background: var(--color-cobre); color: var(--color-cru);">○ Lojas parceiras</span>
+            <h2 id="stores-title" style="font-size: var(--text-display-md); margin-top: 0.5rem;">
+              Brechós com calçados pra você
+            </h2>
+            <p style="color: var(--color-ink-soft); margin-top: 0.5rem; max-width: 56ch;">
+              42 lojas têm peças nesta categoria. Conheça quem garimpa por aí.
+            </p>
+          </div>
+          <a href="#" class="circulou-btn-ghost">Ver todas as lojas →</a>
+        </header>
+
+        <div class="stores-rail" role="list" aria-label="Lojas com produtos em Calçados">
+
+          <a href="#" class="store-card" role="listitem">
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+              <div class="store-logo" style="background-image: url('https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=200&auto=format&fit=crop');"></div>
+              <div>
+                <span class="store-name">Brechó Vintage SP</span>
+                <span class="store-meta">São Paulo · SP</span>
+              </div>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--color-mute);">
+              Curadoria de tênis raros e botas vintage. Cada peça tem etiqueta com história.
+            </p>
+            <span class="store-cta">38 peças em Calçados →</span>
+          </a>
+
+          <a href="#" class="store-card" role="listitem">
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+              <div class="store-logo" style="background-image: url('https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=200&auto=format&fit=crop');"></div>
+              <div>
+                <span class="store-name">Garimpo da Lia</span>
+                <span class="store-meta">Belo Horizonte · MG</span>
+              </div>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--color-mute);">
+              Foco em sneakers e sapatilhas. Receba uma peça selecionada à mão por mês.
+            </p>
+            <span class="store-cta">29 peças em Calçados →</span>
+          </a>
+
+          <a href="#" class="store-card" role="listitem">
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+              <div class="store-logo" style="background-image: url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop');"></div>
+              <div>
+                <span class="store-name">Sebo da Moda</span>
+                <span class="store-meta">Curitiba · PR</span>
+              </div>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--color-mute);">
+              Brechó-sebo com botas de couro restauradas e mocassins de marcas clássicas.
+            </p>
+            <span class="store-cta">24 peças em Calçados →</span>
+          </a>
+
+          <a href="#" class="store-card" role="listitem">
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+              <div class="store-logo" style="background-image: url('https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&auto=format&fit=crop');"></div>
+              <div>
+                <span class="store-name">Atelier do Brechó</span>
+                <span class="store-meta">Porto Alegre · RS</span>
+              </div>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--color-mute);">
+              Recebem, lavam e fotografam cada peça. Especialistas em couro e camurça.
+            </p>
+            <span class="store-cta">19 peças em Calçados →</span>
+          </a>
+
+          <a href="#" class="store-card" role="listitem">
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+              <div class="store-logo" style="background-image: url('https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=200&auto=format&fit=crop');"></div>
+              <div>
+                <span class="store-name">Brechó Sol Lunar</span>
+                <span class="store-meta">Rio de Janeiro · RJ</span>
+              </div>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--color-mute);">
+              Calçados praianos e estilo carioca. Sandálias, slides e mules selecionados.
+            </p>
+            <span class="store-cta">17 peças em Calçados →</span>
+          </a>
+
+          <a href="#" class="store-card" role="listitem">
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+              <div class="store-logo" style="background-image: url('https://images.unsplash.com/photo-1463453091185-61582044d556?w=200&auto=format&fit=crop');"></div>
+              <div>
+                <span class="store-name">Roupeiro Coletivo</span>
+                <span class="store-meta">Florianópolis · SC</span>
+              </div>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--color-mute);">
+              Coletivo de costureiras e curadoras. Tudo passa por uma triagem rigorosa.
+            </p>
+            <span class="store-cta">12 peças em Calçados →</span>
+          </a>
+
+          <a href="#" class="store-card" role="listitem">
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+              <div class="store-logo" style="background-image: url('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop');"></div>
+              <div>
+                <span class="store-name">Recicla Looks</span>
+                <span class="store-meta">Salvador · BA</span>
+              </div>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--color-mute);">
+              ONG-loja: 100% do lucro vai para projetos de costura comunitária.
+            </p>
+            <span class="store-cta">9 peças em Calçados →</span>
+          </a>
+
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ─────────── REFERÊNCIA VISUAL: ESTADO VAZIO ─────────── -->
+    <!-- Esta seção é didática (mostra ao time como deve aparecer quando
+         a categoria não tem produtos). Em produção este bloco SUBSTITUI
+         a sidebar + grid + paginação acima. -->
+    <section class="empty-ref" aria-labelledby="empty-title">
+      <div class="container">
+        <p style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--color-mute); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1.5rem;">
+          ↓ Referência visual: como esta página fica quando a categoria está vazia
+        </p>
+        <div class="empty-ref-card">
+          <div class="empty-illu" aria-hidden="true"></div>
+          <h2 id="empty-title" style="font-size: 1.5rem; margin-bottom: 0.75rem;">
+            Nada por aqui ainda
+          </h2>
+          <p style="color: var(--color-ink-soft); margin-bottom: 1.5rem;">
+            Volte logo — peças novas chegam todo dia. Enquanto isso, dê uma olhada nas
+            outras categorias.
+          </p>
+          <a href="../home/index.html" class="circulou-btn-primary">Voltar para a home</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+
+  <!-- ─────────── FOOTER (idêntico à Home) ─────────── -->
+  <footer class="site-footer">
+    <div class="container py-section-tight">
+      <div class="grid-4" style="gap: 2rem; margin-bottom: 3rem;">
+        <div>
+          <span style="font-family: var(--font-display); color: var(--color-ambar); font-size: 1.4rem;">Circulou</span>
+          <p style="color: var(--color-areia); font-size: 0.9rem; margin-top: 0.75rem; max-width: 28ch;">
+            Brechó online que conecta moda circular, propósito e gente que se importa.
+          </p>
+          <div class="flex gap-4 mt-6" aria-label="Redes sociais">
+            <a href="#" class="footer-link" aria-label="Instagram">Instagram</a>
+            <a href="#" class="footer-link" aria-label="TikTok">TikTok</a>
+            <a href="#" class="footer-link" aria-label="Pinterest">Pinterest</a>
+          </div>
+        </div>
+        <nav>
+          <h3 style="color: var(--color-cru); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; font-family: var(--font-mono);">Úteis</h3>
+          <ul style="list-style: none; padding: 0; margin-top: 1rem; display: flex; flex-direction: column; gap: 0.6rem;">
+            <li><a href="#" class="footer-link">Home</a></li>
+            <li><a href="#" class="footer-link">Quero vender</a></li>
+            <li><a href="#" class="footer-link">Curadoria do Bem</a></li>
+            <li><a href="#" class="footer-link">ONGs parceiras</a></li>
+          </ul>
+        </nav>
+        <nav>
+          <h3 style="color: var(--color-cru); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; font-family: var(--font-mono);">Meu Perfil</h3>
+          <ul style="list-style: none; padding: 0; margin-top: 1rem; display: flex; flex-direction: column; gap: 0.6rem;">
+            <li><a href="#" class="footer-link">Meus pedidos</a></li>
+            <li><a href="#" class="footer-link">Minhas sacolas</a></li>
+            <li><a href="#" class="footer-link">Favoritos</a></li>
+          </ul>
+        </nav>
+        <nav>
+          <h3 style="color: var(--color-cru); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; font-family: var(--font-mono);">Ajuda</h3>
+          <ul style="list-style: none; padding: 0; margin-top: 1rem; display: flex; flex-direction: column; gap: 0.6rem;">
+            <li><a href="#" class="footer-link">Central de ajuda</a></li>
+            <li><a href="#" class="footer-link">Frete e entrega</a></li>
+            <li><a href="#" class="footer-link">Fale conosco</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      <div style="border-top: 1px solid rgba(245,236,229,0.1); padding-top: 2rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+        <p style="color: var(--color-mute); font-size: 0.8rem;">
+          © 2026 Circulou Brechó do Juntos · CNPJ 00.000.000/0001-00 · contato@circulou.com.br
+        </p>
+        <p style="color: var(--color-mute); font-size: 0.8rem;">
+          Pagamentos: Visa · Master · Elo · PIX · Boleto
+        </p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

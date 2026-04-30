@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Circulou — PDP (mobile 360 px)</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="../home/tokens.css" />
+
+  <style>
+    /*
+     * PDP — recorte mobile 360 px (mockup standalone).
+     *
+     * Wrapper `.device` reproduz o mesmo padrão dos outros mockups
+     * mobile (Home, Categoria): viewport-frame 360x780 com preview de
+     * dispositivo, sombra, e bordas arredondadas.
+     *
+     * Estrutura:
+     *   1. App-bar compacta (logo, busca-icon, sacola-icon, menu-icon)
+     *   2. Breadcrumb compacto (somente último-1 + último)
+     *   3. Galeria full-bleed com swiper horizontal (CSS scroll-snap)
+     *      + indicadores de pontos
+     *   4. Bloco de informação (marca, nome, chip categoria, preço, badge)
+     *   5. Características em accordion (Geral aberta; Medidas/Cuidados fechados)
+     *   6. Descrição expansível ("Ver mais")
+     *   7. Quem vendeu (compacto)
+     *   8. Você também vai gostar (rail horizontal)
+     *   9. FAB-bar inferior sticky com "Adicionar à sacola" + ♡
+     */
+    html, body { overflow-x: clip; }
+
+    /* Página externa fica num cinza neutro pra destacar o frame do device */
+    body {
+      background: #d4cfc6;
+      min-height: 100vh;
+      display: flex; justify-content: center; align-items: flex-start;
+      padding: 2rem 1rem;
+    }
+
+    /* Frame do device (idêntico aos outros mobile.html) */
+    .device {
+      width: 360px;
+      min-height: 780px;
+      background: var(--color-page);
+      border-radius: 36px;
+      overflow: hidden;
+      box-shadow:
+        0 32px 64px rgba(20, 20, 20, 0.18),
+        0 0 0 8px #1a1a1a,
+        0 0 0 10px #2a2a2a;
+      position: relative;
+      display: flex; flex-direction: column;
+    }
+    .device-notch {
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 110px; height: 22px;
+      background: #1a1a1a;
+      border-bottom-left-radius: 14px;
+      border-bottom-right-radius: 14px;
+      z-index: 60;
+    }
+
+    /* App-bar compacta */
+    .appbar {
+      position: sticky; top: 0; z-index: 40;
+      background: var(--color-page);
+      border-bottom: 1px solid var(--color-line);
+      padding: 1.75rem 1rem 0.75rem;
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .appbar-logo {
+      display: flex; align-items: center; gap: 0.4rem;
+      text-decoration: none;
+    }
+    .appbar-logo .logo-sun {
+      width: 24px; height: 24px;
+      background: var(--color-ambar);
+      clip-path: polygon(50% 0%, 60% 18%, 78% 14%, 74% 32%, 92% 36%,
+        80% 52%, 96% 64%, 78% 70%, 84% 90%, 64% 84%, 50% 100%,
+        36% 84%, 16% 90%, 22% 70%, 4% 64%, 20% 52%, 8% 36%, 26% 32%,
+        22% 14%, 40% 18%);
+    }
+    .appbar-logo span:last-child {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      color: var(--color-oliva);
+      letter-spacing: 0.02em;
+    }
+    .appbar-icon {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: transparent;
+      border: 1.5px solid var(--color-line);
+      color: var(--color-cedro);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .appbar-icon:focus-visible {
+      outline: 2px solid var(--color-cobre); outline-offset: 2px;
+    }
+    .appbar-icon[aria-label="Sacola"] {
+      position: relative;
+    }
+    .appbar-icon .badge {
+      position: absolute; top: -4px; right: -4px;
+      background: var(--color-ambar);
+      color: var(--color-cedro);
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      font-weight: 700;
+      padding: 0.05rem 0.35rem;
+      border-radius: 999px;
+      min-width: 16px; text-align: center;
+      line-height: 1.4;
+    }
+
+    /* Breadcrumb compacto — só o "voltar" + último */
+    .breadcrumb-compact {
+      padding: 0.7rem 1rem 0.4rem;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-mute);
+      display: flex; align-items: center; gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+    .breadcrumb-compact a {
+      color: var(--color-cedro);
+      text-decoration: none;
+    }
+    .breadcrumb-compact .crumb-back {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      color: var(--color-cobre);
+      font-weight: 500;
+    }
+
+    /* ── Galeria mobile: swiper horizontal full-bleed ──
+       CSS scroll-snap, sem JS. Cada slide ocupa 100% da viewport
+       interna do device (360 - padding 0 = 360 px). aspect-ratio
+       4/5 mantém visual editorial. */
+    .gallery-mobile {
+      position: relative;
+      width: 100%;
+    }
+    .gallery-track {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .gallery-track::-webkit-scrollbar { display: none; }
+    .gallery-slide {
+      flex: 0 0 100%;
+      scroll-snap-align: start;
+      aspect-ratio: 4 / 5;
+      background-size: cover;
+      background-position: center;
+      background-color: var(--color-areia-soft);
+    }
+    /* Contador top-left (ex.: 01/05) */
+    .gallery-counter-mobile {
+      position: absolute;
+      top: 0.85rem; left: 0.85rem;
+      padding: 0.3rem 0.7rem;
+      background: rgba(20, 20, 20, 0.55);
+      color: var(--color-cru);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      border-radius: 999px;
+      backdrop-filter: blur(4px);
+    }
+    /* Pontos indicadores (bottom-center) */
+    .gallery-dots-mobile {
+      position: absolute;
+      bottom: 0.85rem; left: 50%;
+      transform: translateX(-50%);
+      display: flex; gap: 0.35rem;
+      padding: 0.3rem 0.55rem;
+      background: rgba(20, 20, 20, 0.4);
+      border-radius: 999px;
+    }
+    .gallery-dots-mobile .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: rgba(245, 236, 229, 0.5);
+    }
+    .gallery-dots-mobile .dot[aria-current="true"] {
+      background: var(--color-ambar);
+      width: 16px; border-radius: 999px;
+    }
+    /* Botão favoritar flutuante (top-right) */
+    .gallery-fav-fab {
+      position: absolute;
+      top: 0.85rem; right: 0.85rem;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: rgba(245, 236, 229, 0.92);
+      backdrop-filter: blur(4px);
+      border: none;
+      color: var(--color-cedro);
+      font-size: 1.15rem;
+      cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+
+    /* ── Bloco de informação ── */
+    .info-block {
+      padding: 1.25rem 1rem 1.5rem;
+      display: flex; flex-direction: column; gap: 0.75rem;
+    }
+    .info-brand {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-cedro);
+    }
+    .info-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      color: var(--color-cedro);
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+    }
+    .info-cat-chip {
+      align-self: flex-start;
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      background: var(--color-oliva-soft);
+      color: var(--color-oliva);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      text-decoration: none;
+    }
+    .info-cat-chip::before { content: "○"; color: var(--color-oliva); }
+
+    .info-price {
+      display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap;
+      padding: 0.6rem 0;
+      border-top: 1px dashed var(--color-line);
+      border-bottom: 1px dashed var(--color-line);
+    }
+    .info-price-now {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      color: var(--color-cobre);
+      line-height: 1;
+    }
+    .info-price-old {
+      font-size: 0.85rem;
+      color: var(--color-mute);
+      text-decoration: line-through;
+    }
+    .info-discount {
+      padding: 0.25rem 0.55rem;
+      border-radius: 999px;
+      background: var(--color-cobre);
+      color: var(--color-cru);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+    }
+
+    .info-state {
+      display: inline-flex; align-self: flex-start;
+      align-items: center; gap: 0.35rem;
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      background: var(--color-ambar);
+      color: var(--color-cedro);
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ── Linha consolidada Qty + CTA + Favoritar (mobile) ──────────
+       Mesmo padrão do desktop: stepper(auto) | CTA primário(1fr) | fav(auto).
+       Em 360 px o CTA fica estreito; em 320 px o layout colapsa o CTA
+       para a linha de baixo. */
+    .m-qty-cta-row {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 0.6rem;
+      align-items: center;
+      padding: 0 1rem;
+      margin: 0.85rem 0 0.5rem;
+    }
+    .m-qty-stepper {
+      display: inline-flex; align-items: center;
+      border: 1.5px solid var(--color-cedro);
+      border-radius: var(--radius);
+      overflow: hidden;
+      height: 48px;
+    }
+    .m-qty-stepper button {
+      width: 36px; height: 100%;
+      background: transparent; border: none;
+      color: var(--color-cedro);
+      font-size: 1.1rem; font-family: var(--font-sans);
+      cursor: pointer;
+    }
+    .m-qty-stepper button[disabled] { opacity: 0.4; cursor: not-allowed; }
+    .m-qty-stepper input {
+      width: 40px; height: 100%;
+      border: none; text-align: center;
+      font-family: var(--font-sans); font-weight: 600;
+      color: var(--color-cedro); background: transparent;
+      border-left: 1px solid var(--color-line);
+      border-right: 1px solid var(--color-line);
+      -moz-appearance: textfield;
+    }
+    .m-qty-stepper input::-webkit-outer-spin-button,
+    .m-qty-stepper input::-webkit-inner-spin-button {
+      -webkit-appearance: none; margin: 0;
+    }
+    .m-cta-primary {
+      min-height: 48px;
+      width: 100%;
+      font-size: 0.92rem;
+      padding: 0.6rem 0.85rem;
+    }
+    .m-cta-fav {
+      width: 48px; height: 48px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: var(--radius);
+      border: 1.5px solid var(--color-cedro);
+      background: var(--color-surface);
+      color: var(--color-cedro);
+      font-size: 1.25rem;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .m-cta-fav[aria-pressed="true"] {
+      background: var(--color-cobre);
+      color: var(--color-cru);
+      border-color: var(--color-cobre);
+    }
+    .m-qty-limit {
+      padding: 0 1rem;
+      font-size: 0.72rem; color: var(--color-mute);
+      font-family: var(--font-mono);
+      margin-bottom: 1rem;
+    }
+
+    /* ── Calcular frete (bloco dedicado mobile) ──────────────────── */
+    .m-shipping {
+      padding: 1rem;
+      margin: 0.5rem 0;
+      background: var(--color-surface);
+      border-top: 1px solid var(--color-line);
+      border-bottom: 1px solid var(--color-line);
+    }
+    .m-shipping .m-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-cedro);
+      margin-bottom: 0.6rem;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+    }
+    .m-shipping .m-eyebrow::before { content: "✈"; color: var(--color-cobre); font-size: 0.85rem; }
+    .m-cep-row {
+      display: flex; gap: 0.5rem;
+    }
+    .m-cep-row input {
+      flex: 1; min-width: 0;
+      height: 44px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--color-line);
+      background: var(--color-surface);
+      padding: 0 0.75rem;
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      color: var(--color-ink);
+    }
+    .m-cep-row button {
+      height: 44px;
+      padding: 0 1rem;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--color-cedro);
+      background: var(--color-cedro);
+      color: var(--color-cru);
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .m-shipping-result {
+      margin-top: 0.7rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.5rem 0.85rem;
+      align-items: baseline;
+      padding: 0.65rem 0.8rem;
+      background: var(--color-areia-soft);
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+    }
+    .m-shipping-result .ship-method { font-weight: 600; color: var(--color-cedro); }
+    .m-shipping-result .ship-eta { color: var(--color-mute); font-size: 0.78rem; grid-column: 1 / 2; }
+    .m-shipping-result .ship-price {
+      font-family: var(--font-display);
+      color: var(--color-cobre);
+      font-size: 1rem;
+      grid-row: 1 / 3;
+      grid-column: 2 / 3;
+      align-self: center;
+    }
+    .m-shipping-disclaimer {
+      margin-top: 0.55rem;
+      font-size: 0.7rem;
+      color: var(--color-mute);
+      font-family: var(--font-mono);
+    }
+
+    /* ── Características em accordion ── */
+    .attrs-accordion {
+      padding: 0 1rem 1.5rem;
+      display: flex; flex-direction: column; gap: 0.5rem;
+    }
+    .attr-detail {
+      background: var(--color-surface);
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .attr-detail summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 0.85rem 1rem;
+      min-height: 44px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-cedro);
+      font-weight: 500;
+    }
+    .attr-detail summary::-webkit-details-marker { display: none; }
+    .attr-detail summary::after {
+      content: "+";
+      font-family: var(--font-sans);
+      font-size: 1.3rem;
+      color: var(--color-cobre);
+      font-weight: 400;
+      transition: transform 150ms ease;
+      line-height: 1;
+    }
+    .attr-detail[open] summary::after {
+      content: "−";
+    }
+    .attr-detail summary:focus-visible {
+      outline: 2px solid var(--color-cobre);
+      outline-offset: -2px;
+    }
+    .attr-body {
+      padding: 0 1rem 1rem;
+      border-top: 1px dashed var(--color-line);
+      padding-top: 0.85rem;
+    }
+    .attrs-list-mobile {
+      margin: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+      gap: 0.5rem 0.85rem;
+      align-items: baseline;
+    }
+    .attrs-list-mobile dt {
+      font-size: 0.8rem; color: var(--color-mute); font-weight: 500;
+    }
+    .attrs-list-mobile dd {
+      margin: 0;
+      font-size: 0.85rem; color: var(--color-ink); font-weight: 600;
+    }
+    .attrs-list-mobile dd code {
+      font-family: var(--font-mono);
+      background: var(--color-areia-soft);
+      color: var(--color-cedro);
+      padding: 0.05rem 0.4rem;
+      border-radius: var(--radius-sm);
+    }
+
+    /* ── Descrição expansível ── */
+    .description-mobile {
+      padding: 1.5rem 1rem;
+      background: var(--color-surface-warm);
+      border-top: 1px solid var(--color-line);
+      border-bottom: 1px solid var(--color-line);
+    }
+    .description-mobile .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-cobre);
+      margin-bottom: 0.6rem;
+      display: block;
+    }
+    .description-mobile h2 {
+      font-size: 1.15rem;
+      color: var(--color-cedro);
+      margin-bottom: 0.85rem;
+      line-height: 1.25;
+    }
+    .description-mobile .desc-collapsed {
+      max-height: 9.5rem;
+      overflow: hidden;
+      position: relative;
+    }
+    .description-mobile .desc-collapsed::after {
+      content: "";
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 4rem;
+      background: linear-gradient(180deg, transparent, var(--color-surface-warm));
+      pointer-events: none;
+    }
+    .description-mobile p {
+      font-size: 0.9rem; line-height: 1.6;
+      color: var(--color-ink-soft);
+      margin-bottom: 0.85rem;
+    }
+    .description-mobile .desc-toggle {
+      margin-top: 0.6rem;
+      background: transparent;
+      border: none;
+      color: var(--color-cobre);
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: underline;
+      padding: 0.5rem 0;
+      cursor: pointer;
+      min-height: 44px;
+      display: inline-flex; align-items: center;
+    }
+
+    /* ── Quem vendeu (mobile compacto) ── */
+    .seller-mobile {
+      padding: 1.25rem 1rem;
+      background: var(--color-areia);
+      display: flex; flex-direction: column; gap: 1rem;
+    }
+    .seller-mobile-card {
+      display: grid;
+      grid-template-columns: 56px minmax(0, 1fr);
+      gap: 0.85rem;
+      align-items: center;
+      background: var(--color-surface);
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius);
+      padding: 0.85rem 1rem;
+    }
+    .seller-mobile-logo {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background-size: cover; background-position: center;
+      background-color: var(--color-areia-soft);
+      border: 1.5px solid var(--color-line);
+    }
+    .seller-mobile-info .label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-mute);
+    }
+    .seller-mobile-info h3 {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      color: var(--color-cedro);
+      margin: 0.15rem 0;
+      line-height: 1.1;
+    }
+    .seller-mobile-info .stats {
+      font-size: 0.75rem;
+      color: var(--color-ink-soft);
+      display: flex; align-items: center; gap: 0.3rem;
+    }
+    .seller-mobile-info .stars {
+      color: var(--color-ambar); letter-spacing: 0.05em;
+    }
+    .seller-mobile-cta {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 44px;
+      padding: 0.6rem 1rem;
+      border-radius: var(--radius);
+      border: 1.5px solid var(--color-cedro);
+      color: var(--color-cedro);
+      background: transparent;
+      font-family: var(--font-sans);
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-decoration: none;
+    }
+
+    /* ── Você também vai gostar ── */
+    .related-mobile {
+      padding: 1.5rem 0 1rem;
+    }
+    .related-mobile-header {
+      padding: 0 1rem;
+      margin-bottom: 1rem;
+    }
+    .related-mobile-header h2 {
+      font-size: 1.2rem;
+      color: var(--color-cedro);
+      margin-top: 0.4rem;
+    }
+    .related-mobile-rail {
+      display: flex; gap: 0.75rem;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-padding: 1rem;
+      scrollbar-width: none;
+      padding: 0 1rem 0.5rem;
+    }
+    .related-mobile-rail::-webkit-scrollbar { display: none; }
+    .related-mobile-rail > * {
+      flex: 0 0 160px;
+      scroll-snap-align: start;
+    }
+    .related-mobile-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      width: 160px;
+    }
+    .related-mobile-card .img {
+      aspect-ratio: 3 / 4;
+      background-size: cover; background-position: center;
+      background-color: var(--color-areia-soft);
+    }
+    .related-mobile-card .body {
+      padding: 0.55rem 0.7rem 0.7rem;
+      display: flex; flex-direction: column; gap: 0.2rem;
+    }
+    .related-mobile-card .brand-mini {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-cedro);
+    }
+    .related-mobile-card .name-mini {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--color-tinta);
+      line-height: 1.25;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .related-mobile-card .price-mini {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      color: var(--color-cobre);
+      margin-top: 0.2rem;
+    }
+
+    /* Espaço inferior para a FAB-bar não cobrir nada */
+    .scroll-spacer { height: 96px; }
+
+    /* ── FAB-bar inferior sticky ── */
+    .fab-bar {
+      position: sticky;
+      bottom: 0;
+      z-index: 50;
+      background: var(--color-page);
+      border-top: 1px solid var(--color-line);
+      padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.6rem;
+      box-shadow: 0 -8px 24px rgba(77, 40, 1, 0.08);
+    }
+    .fab-primary {
+      min-height: 48px;
+      font-size: 0.95rem;
+      width: 100%;
+    }
+    .fab-fav {
+      width: 48px; height: 48px;
+      border-radius: var(--radius);
+      border: 1.5px solid var(--color-cedro);
+      background: var(--color-surface);
+      color: var(--color-cedro);
+      font-size: 1.25rem;
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+    .fab-fav[aria-pressed="true"] {
+      background: var(--color-cobre);
+      color: var(--color-cru);
+      border-color: var(--color-cobre);
+    }
+    .fab-fav:focus-visible {
+      outline: 3px solid var(--color-ambar); outline-offset: 2px;
+    }
+
+    /* Mostrador "preço pequeno" antes do CTA na FAB-bar — opcional */
+    .fab-priceline {
+      padding: 0 1rem 0.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--color-mute);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: flex; justify-content: space-between;
+    }
+    .fab-priceline strong {
+      color: var(--color-cobre);
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      letter-spacing: 0;
+    }
+
+    /* sr-only */
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Frame de dispositivo (mockup visual) -->
+  <div class="device" role="figure" aria-label="Mockup mobile da PDP — viewport 360 px">
+    <div class="device-notch" aria-hidden="true"></div>
+
+    <!-- App-bar -->
+    <header class="appbar">
+      <a href="../home/index.html" class="appbar-logo" aria-label="Circulou — voltar para a home">
+        <span class="logo-sun" aria-hidden="true"></span>
+        <span>Circulou</span>
+      </a>
+
+      <span></span>
+
+      <button type="button" class="appbar-icon" aria-label="Buscar">🔍</button>
+
+      <a href="#" class="appbar-icon" aria-label="Sacola">
+        ⛁
+        <span class="badge" aria-hidden="true">0</span>
+      </a>
+    </header>
+
+    <!-- Breadcrumb compacto: voltar + página atual -->
+    <nav class="breadcrumb-compact" aria-label="Caminho de navegação">
+      <a href="../category/index.html" class="crumb-back">‹ Calçados › Tênis</a>
+    </nav>
+
+    <main>
+
+      <!-- ── Galeria swiper ── -->
+      <section
+        class="gallery-mobile"
+        aria-roledescription="carousel"
+        aria-label="Galeria de fotos do produto"
+      >
+        <button class="gallery-fav-fab" type="button" aria-pressed="false" aria-label="Favoritar peça">♡</button>
+        <span class="gallery-counter-mobile" aria-hidden="true">01 / 05</span>
+
+        <div class="gallery-track" tabindex="0" aria-label="Arraste para ver mais fotos">
+          <div
+            class="gallery-slide"
+            role="group"
+            aria-roledescription="slide"
+            aria-label="Foto 1 de 5: vista frontal"
+            style="background-image: url('https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=800&auto=format&fit=crop');"
+          ></div>
+          <div
+            class="gallery-slide"
+            role="group"
+            aria-roledescription="slide"
+            aria-label="Foto 2 de 5: lateral direita"
+            style="background-image: url('https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=800&auto=format&fit=crop');"
+          ></div>
+          <div
+            class="gallery-slide"
+            role="group"
+            aria-roledescription="slide"
+            aria-label="Foto 3 de 5: solado"
+            style="background-image: url('https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=800&auto=format&fit=crop');"
+          ></div>
+          <div
+            class="gallery-slide"
+            role="group"
+            aria-roledescription="slide"
+            aria-label="Foto 4 de 5: detalhe do material"
+            style="background-image: url('https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&auto=format&fit=crop');"
+          ></div>
+          <div
+            class="gallery-slide"
+            role="group"
+            aria-roledescription="slide"
+            aria-label="Foto 5 de 5: usada em ambiente"
+            style="background-image: url('https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=800&auto=format&fit=crop');"
+          ></div>
+        </div>
+
+        <div class="gallery-dots-mobile" aria-hidden="true">
+          <span class="dot" aria-current="true"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+      </section>
+
+      <!-- ── 1. Bloco de informação (sem micro-info; vendedor/frete agora são blocos próprios) ── -->
+      <section class="info-block" aria-labelledby="m-product-title">
+        <p class="info-brand">Adidas · SKU 102934</p>
+
+        <h1 id="m-product-title" class="info-title">
+          Tênis Adidas Stan Smith branco couro
+        </h1>
+
+        <a class="info-cat-chip" href="../category/index.html">Calçados › Tênis</a>
+
+        <div class="info-price">
+          <span class="info-price-now">R$ 169,00</span>
+          <span class="info-price-old">R$ 449,00</span>
+          <span class="info-discount">−62%</span>
+        </div>
+
+        <span class="info-state">★ Só essa! Última peça</span>
+      </section>
+
+      <!-- ── 2. Quantidade + Adicionar à sacola + Favoritar (mesma linha) ── -->
+      <div class="m-qty-cta-row">
+        <div class="m-qty-stepper" role="group" aria-label="Seletor de quantidade">
+          <button type="button" aria-label="Diminuir quantidade" disabled>−</button>
+          <input type="number" value="1" min="1" max="1" aria-label="Quantidade" />
+          <button type="button" aria-label="Aumentar quantidade" disabled>+</button>
+        </div>
+        <button type="button" class="circulou-btn-primary m-cta-primary" aria-label="Adicionar à sacola">
+          Adicionar à sacola
+        </button>
+        <button type="button" class="m-cta-fav" aria-pressed="false" aria-label="Favoritar peça">♡</button>
+      </div>
+      <span class="m-qty-limit">máx. 1 por compra</span>
+
+      <!-- ── 3. Descrição expansível ── -->
+      <section class="description-mobile" aria-labelledby="m-desc-title">
+        <span class="eyebrow">○ ○ ○ Sobre essa peça</span>
+        <h2 id="m-desc-title">Um clássico que atravessa décadas — e ainda tem fôlego pra muita estação.</h2>
+        <div class="desc-collapsed">
+          <p>
+            Esse Stan Smith branco couro chegou ao Brechó da Lua já com história.
+            A dona usou em três eventos, percebeu que o tamanho não ficou ideal e
+            decidiu repassar. Antes de fotografar, nossa curadoria higienizou o
+            couro, lavou os cadarços e checou costura por costura.
+          </p>
+          <p>
+            O cabedal mantém o branco original com leve patina natural — exatamente
+            o que dá charme nos Stan Smith depois de algum uso. Solado íntegro,
+            sem desgaste de pisada. O detalhe verde clássico no calcanhar segue
+            impecável.
+          </p>
+        </div>
+        <button type="button" class="desc-toggle" aria-expanded="false">Ver mais ↓</button>
+      </section>
+
+      <!-- ── 4. Calcular frete ── -->
+      <section class="m-shipping" aria-labelledby="m-shipping-title">
+        <h2 id="m-shipping-title" class="m-eyebrow">Calcular frete e prazo</h2>
+        <div class="m-cep-row">
+          <input
+            type="text"
+            inputmode="numeric"
+            placeholder="00000-000"
+            aria-label="Digite seu CEP"
+            value="30130-100"
+          />
+          <button type="button" aria-label="Calcular frete">Calcular</button>
+        </div>
+        <div class="m-shipping-result" role="status" aria-live="polite">
+          <span class="ship-method">Sedex</span>
+          <span class="ship-eta">3 a 5 dias úteis</span>
+          <span class="ship-price">R$ 18,90</span>
+        </div>
+        <p class="m-shipping-disclaimer">
+          Devolução grátis em até 7 dias se não te servir.
+        </p>
+      </section>
+
+      <!-- ── 5. Quem vendeu ── -->
+      <section class="seller-mobile" aria-labelledby="m-seller-title">
+        <h2 id="m-seller-title" class="sr-only">Quem vendeu</h2>
+        <div class="seller-mobile-card">
+          <div
+            class="seller-mobile-logo"
+            role="img"
+            aria-label="Logo Brechó da Lua"
+            style="background-image: url('https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300&auto=format&fit=crop');"
+          ></div>
+          <div class="seller-mobile-info">
+            <span class="label">Vendido por</span>
+            <h3>Brechó da Lua</h3>
+            <span class="stats">
+              <span class="stars" aria-hidden="true">★★★★★</span>
+              <strong style="color: var(--color-cedro); font-weight: 600;">4,9</strong>
+              <span style="color: var(--color-mute);">· 1.247 vendas</span>
+            </span>
+          </div>
+        </div>
+        <a href="#" class="seller-mobile-cta">Ver outras peças desta loja →</a>
+      </section>
+
+      <!-- ── 6. Características (accordion) ── -->
+      <section class="attrs-accordion" aria-labelledby="m-attrs-title">
+        <h2 id="m-attrs-title" class="sr-only">Características do produto</h2>
+
+        <details class="attr-detail" open>
+          <summary aria-label="Características gerais (aberto)">
+            <span>▲ Geral</span>
+          </summary>
+          <div class="attr-body">
+            <dl class="attrs-list-mobile">
+              <dt>Condição</dt><dd>Semi-nova</dd>
+              <dt>Tamanho</dt><dd><code>39</code></dd>
+              <dt>Marca</dt><dd>Adidas</dd>
+              <dt>Cor</dt><dd>Branco</dd>
+              <dt>Material</dt><dd>Couro liso</dd>
+              <dt>Composição</dt><dd>100% couro bovino</dd>
+              <dt>Gênero</dt><dd>Unissex</dd>
+              <dt>Modelo</dt><dd>Stan Smith</dd>
+            </dl>
+          </div>
+        </details>
+
+        <details class="attr-detail">
+          <summary aria-label="Medidas (fechado)">
+            <span>◇ Medidas</span>
+          </summary>
+          <div class="attr-body">
+            <dl class="attrs-list-mobile">
+              <dt>Tamanho BR</dt><dd><code>39</code></dd>
+              <dt>Tamanho US</dt><dd><code>7,5</code></dd>
+              <dt>Tamanho EU</dt><dd><code>40</code></dd>
+              <dt>Palmilha</dt><dd>25,5 cm</dd>
+              <dt>Largura interna</dt><dd>9,5 cm</dd>
+              <dt>Altura solado</dt><dd>2,8 cm</dd>
+              <dt>Cabedal</dt><dd>Cano baixo</dd>
+            </dl>
+          </div>
+        </details>
+
+        <details class="attr-detail">
+          <summary aria-label="Cuidados (fechado)">
+            <span>○ Cuidados</span>
+          </summary>
+          <div class="attr-body">
+            <dl class="attrs-list-mobile">
+              <dt>Lavagem</dt><dd>Apenas pano úmido</dd>
+              <dt>Secagem</dt><dd>Sombra, longe de calor</dd>
+              <dt>Hidratação</dt><dd>Creme neutro de couro</dd>
+              <dt>Não pode</dt><dd>Imersão, alvejante, máquina</dd>
+              <dt>Armazenar</dt><dd>Forma neutra ou papel</dd>
+            </dl>
+          </div>
+        </details>
+      </section>
+
+      <!-- ── 7. Você também vai gostar ── -->
+      <section class="related-mobile" aria-labelledby="m-related-title">
+        <header class="related-mobile-header">
+          <span class="circulou-tag">○ Você também vai gostar</span>
+          <h2 id="m-related-title">Outros tênis</h2>
+        </header>
+
+        <div class="related-mobile-rail" role="list" aria-label="Carrossel de produtos relacionados">
+
+          <a href="#" class="related-mobile-card" role="listitem" style="text-decoration: none; color: inherit;">
+            <div class="img" style="background-image: url('https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop');"></div>
+            <div class="body">
+              <span class="brand-mini">Nike</span>
+              <span class="name-mini">Air Max 90 vermelho retrô</span>
+              <span class="price-mini">R$ 219,00</span>
+            </div>
+          </a>
+
+          <a href="#" class="related-mobile-card" role="listitem" style="text-decoration: none; color: inherit;">
+            <div class="img" style="background-image: url('https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=600&auto=format&fit=crop');"></div>
+            <div class="body">
+              <span class="brand-mini">Vans</span>
+              <span class="name-mini">Old Skool preto, lona</span>
+              <span class="price-mini">R$ 119,00</span>
+            </div>
+          </a>
+
+          <a href="#" class="related-mobile-card" role="listitem" style="text-decoration: none; color: inherit;">
+            <div class="img" style="background-image: url('https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600&auto=format&fit=crop');"></div>
+            <div class="body">
+              <span class="brand-mini">Converse</span>
+              <span class="name-mini">Chuck Taylor amarelo</span>
+              <span class="price-mini">R$ 99,00</span>
+            </div>
+          </a>
+
+          <a href="#" class="related-mobile-card" role="listitem" style="text-decoration: none; color: inherit;">
+            <div class="img" style="background-image: url('https://images.unsplash.com/photo-1539185441755-769473a23570?w=600&auto=format&fit=crop');"></div>
+            <div class="body">
+              <span class="brand-mini">Reebok</span>
+              <span class="name-mini">Classic Leather areia</span>
+              <span class="price-mini">R$ 149,00</span>
+            </div>
+          </a>
+
+        </div>
+      </section>
+
+      <div class="scroll-spacer" aria-hidden="true"></div>
+
+    </main>
+
+    <!-- ── FAB-bar inferior ── -->
+    <div class="fab-priceline" aria-hidden="true">
+      <span>Total nesta peça</span>
+      <strong>R$ 169,00</strong>
+    </div>
+    <div class="fab-bar" role="region" aria-label="Ações rápidas do produto">
+      <button type="button" class="circulou-btn-primary fab-primary" aria-label="Adicionar Stan Smith à sacola">
+        Adicionar à sacola
+      </button>
+      <button type="button" class="fab-fav" aria-pressed="false" aria-label="Favoritar peça">♡</button>
+    </div>
+
+  </div>
+
+</body>
+</html>

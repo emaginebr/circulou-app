@@ -1,22 +1,45 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/hooks/useCart';
 import { useStores } from '@/hooks/useStores';
 import { productsService } from '@/Services/ProductsService';
+import { storesService } from '@/Services/StoresService';
+import { categoriesService } from '@/Services/CategoriesService';
 import { ProductStatusEnum } from '@/types/product';
 import type { ProductInfo } from '@/types/product';
+import type { ProductAttributes as ProductAttributesData } from '@/types/productAttributes';
+import type { StoreReputation } from '@/types/storeReputation';
+import type { CategoryNode } from '@/types/category';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { ProductGallery } from '@/components/product/ProductGallery';
-import { PriceTag } from '@/components/product/PriceTag';
+import { ProductBreadcrumb } from '@/components/product/ProductBreadcrumb';
+import { ProductCategoryChip } from '@/components/product/ProductCategoryChip';
+import { ProductPriceBlock } from '@/components/product/ProductPriceBlock';
+import { ProductStateBadges } from '@/components/product/ProductStateBadges';
+import { ProductQtyCtaRow } from '@/components/product/ProductQtyCtaRow';
+import { ProductDescription } from '@/components/product/ProductDescription';
+import { ProductShippingCalculator } from '@/components/product/ProductShippingCalculator';
+import { ProductSellerCompact } from '@/components/product/ProductSellerCompact';
+import { ProductAttributes } from '@/components/product/ProductAttributes';
+import { RelatedProductsRail } from '@/components/product/RelatedProductsRail';
 
 interface LocationStateWithProduct {
   product?: ProductInfo;
 }
+
+const findCategorySlug = (tree: CategoryNode[], categoryId: number): string | null => {
+  for (const node of tree) {
+    if (node.categoryId === categoryId) return node.slug;
+    if (node.children) {
+      const inner = findCategorySlug(node.children, categoryId);
+      if (inner) return inner;
+    }
+  }
+  return null;
+};
 
 export const ProductPage = () => {
   const { storeSlug = '', productSlug = '' } = useParams();
@@ -33,7 +56,15 @@ export const ProductPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
   const [adding, setAdding] = useState(false);
+  const [isFav, setIsFav] = useState(false);
 
+  // Attrs / reputation / related — todos mocks client-side.
+  const [attributes, setAttributes] = useState<ProductAttributesData | null>(null);
+  const [reputation, setReputation] = useState<StoreReputation | null>(null);
+  const [related, setRelated] = useState<ProductInfo[]>([]);
+  const [categorySlug, setCategorySlug] = useState<string | null>(null);
+
+  // Fetch base do produto (mantém a lógica do ProductPage anterior).
   useEffect(() => {
     let cancelled = false;
     if (initialFromState && initialFromState.slug === productSlug) return;
@@ -55,7 +86,48 @@ export const ProductPage = () => {
     };
   }, [storeSlug, productSlug, initialFromState]);
 
-  if (loading) return <LoadingSpinner />;
+  // Sobe pro topo a cada novo produto.
+  useEffect(() => {
+    if (product) {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      setQty(1);
+      setIsFav(false);
+    }
+  }, [product?.productId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Mocks LOFN-G30/G34/G35: atributos + relacionados + reputação em paralelo.
+  useEffect(() => {
+    let cancelled = false;
+    if (!product) {
+      return () => {
+        cancelled = true;
+      };
+    }
+    const productId = product.productId;
+    const categoryId = product.categoryId;
+    const storeId = product.storeId;
+
+    void Promise.all([
+      productsService.getAttributes(productId, categoryId),
+      productsService.getRelated(productId, categoryId, 6),
+      storeId !== null ? storesService.getReputation(storeId) : Promise.resolve(null),
+      categoryId !== null
+        ? categoriesService.getMarketplaceCategoryTree()
+        : Promise.resolve([] as CategoryNode[]),
+    ]).then(([attrs, relatedItems, rep, tree]) => {
+      if (cancelled) return;
+      setAttributes(attrs);
+      setRelated(relatedItems);
+      setReputation(rep);
+      setCategorySlug(categoryId !== null ? findCategorySlug(tree, categoryId) : null);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [product?.productId, product?.categoryId, product?.storeId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (loading && !product) return <LoadingSpinner />;
   if (error) return <ErrorState message={error} />;
   if (!product) {
     return <ErrorState message="Produto não encontrado." />;
@@ -64,6 +136,13 @@ export const ProductPage = () => {
   const limit = product.limit > 0 ? product.limit : 99;
   const isInactive = product.status !== ProductStatusEnum.Active;
   const store = product.storeId !== null ? storesById.get(product.storeId) : undefined;
+  const sku = `SKU ${String(product.productId).padStart(6, '0')}`;
+  // MOCK :: LOFN-G30 — "marca" derivada do mock de atributos quando houver,
+  // senão fallback para o nome da loja como brand-line.
+  const brandLine =
+    attributes?.groups
+      .find(g => g.title === 'Geral')
+      ?.items.find(i => i.label === 'Marca')?.value ?? store?.name ?? 'Brechó parceiro';
 
   const handleAdd = async () => {
     if (!isAuthenticated) {
@@ -98,74 +177,123 @@ export const ProductPage = () => {
     }
   };
 
+  const toggleFav = () => {
+    setIsFav(v => !v);
+    toast.success(
+      isFav ? 'Removido dos favoritos' : 'Salvo nos favoritos',
+    );
+  };
+
   return (
-    <article className="max-w-7xl mx-auto px-4 py-4">
-      <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-12 md:col-span-6">
+    <article className="mx-auto w-full max-w-[1280px] px-6 lg:px-10">
+      {/* Breadcrumb */}
+      <section className="pt-7 pb-4">
+        <ProductBreadcrumb categoryId={product.categoryId} productName={product.name} />
+      </section>
+
+      {/* Grid 2-col em ≥1024 px (galeria sticky à esquerda + painel à direita). */}
+      <section className="pdp-grid pb-12">
+        <div className="pdp-gallery-col">
           <ProductGallery
             images={product.images ?? []}
             fallbackUrl={product.imageUrl}
             productName={product.name}
+            soldOut={isInactive}
           />
         </div>
-        <div className="col-span-12 md:col-span-6">
-          <h1 className="text-2xl font-semibold">{product.name}</h1>
-          {store ? (
-            <Link
-              to={`/loja/${store.slug}`}
-              className="block text-sm text-[var(--color-primary)] hover:underline mb-2"
-            >
-              {store.name}
-            </Link>
-          ) : null}
-          <PriceTag price={product.price} discount={product.discount} />
-          {product.frequency > 0 ? (
-            <span className="inline-block px-2 py-0.5 text-xs rounded bg-blue-500 text-white mt-2">
-              Recorrente
-            </span>
-          ) : null}
-          {isInactive ? (
-            <div
-              className="bg-yellow-50 border border-yellow-200 text-yellow-900 rounded-[var(--radius)] p-3 mt-3"
-              role="alert"
-            >
-              Produto indisponível no momento.
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 mt-3">
-              <label htmlFor="qty" className="text-sm font-medium mb-0">
-                Quantidade
-              </label>
-              <input
-                id="qty"
-                type="number"
-                className="w-20 rounded-[var(--radius-sm)] border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
-                min={1}
-                max={limit}
-                value={qty}
-                onChange={e =>
-                  setQty(Math.max(1, Math.min(limit, Number(e.target.value) || 1)))
-                }
-              />
-              <small className="text-[var(--color-mute)]">limite {limit}</small>
-            </div>
-          )}
-          <button
-            type="button"
-            className="inline-flex items-center mt-3 px-4 py-2 bg-[var(--color-primary)] text-white rounded-[var(--radius)] hover:bg-[var(--color-primary-hover)] transition disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={() => void handleAdd()}
-            disabled={adding || isInactive}
+
+        <section className="flex flex-col gap-4" aria-labelledby="pdp-product-title">
+          {/* Eyebrow brand + SKU */}
+          <p
+            className="flex items-center gap-2 m-0"
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.75rem',
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: 'var(--color-cedro)',
+            }}
           >
-            {adding ? '...' : 'Adicionar ao carrinho'}
-          </button>
-          <hr className="border-gray-200 my-4" />
-          <div className="markdown-body prose prose-sm max-w-none">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {product.description ?? ''}
-            </ReactMarkdown>
-          </div>
-        </div>
-      </div>
+            <span aria-hidden="true">●</span>
+            <span style={{ borderBottom: '1px dashed var(--color-line)', paddingBottom: 1 }}>
+              {brandLine}
+            </span>
+            <span aria-hidden="true" style={{ color: 'var(--color-line)' }}>
+              ·
+            </span>
+            <span>{sku}</span>
+          </p>
+
+          <h1
+            id="pdp-product-title"
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 'clamp(1.75rem, 3vw, 2.5rem)',
+              color: 'var(--color-cedro)',
+              lineHeight: 1.1,
+              letterSpacing: '-0.01em',
+            }}
+          >
+            {product.name}
+          </h1>
+
+          <ProductCategoryChip categoryId={product.categoryId} />
+
+          <ProductPriceBlock price={product.price} discount={product.discount} />
+
+          <ProductStateBadges product={product} attributes={attributes} />
+
+          <ProductQtyCtaRow
+            qty={qty}
+            setQty={setQty}
+            limit={limit}
+            adding={adding}
+            disabled={isInactive}
+            soldOut={isInactive}
+            productName={product.name}
+            onAddToCart={() => void handleAdd()}
+            isFav={isFav}
+            onToggleFav={toggleFav}
+          />
+
+          <ProductDescription markdown={product.description ?? ''} />
+
+          <ProductShippingCalculator productId={product.productId} />
+
+          {store && reputation ? (
+            <ProductSellerCompact store={store} reputation={reputation} />
+          ) : null}
+
+          {attributes ? <ProductAttributes attributes={attributes} /> : null}
+        </section>
+      </section>
+
+      <RelatedProductsRail
+        products={related}
+        storesById={storesById}
+        categorySlug={categorySlug}
+      />
+
+      <style>{`
+        .pdp-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 2rem;
+          align-items: start;
+        }
+        .pdp-grid > * { min-width: 0; }
+        @media (min-width: 1024px) {
+          .pdp-grid {
+            grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+            gap: 3rem;
+          }
+          .pdp-gallery-col {
+            position: sticky;
+            top: 113px;
+            align-self: start;
+          }
+        }
+      `}</style>
     </article>
   );
 };

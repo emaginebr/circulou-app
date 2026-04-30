@@ -8,6 +8,12 @@ import type {
 } from '@/types/product';
 import { ProductStatusEnum } from '@/types/product';
 import type { FilterState, SearchPage, SortBy } from '@/types/search';
+import type {
+  ProductAttributes,
+  ProductAttributesGroup,
+  ProductCondition,
+} from '@/types/productAttributes';
+import type { CategoryNode } from '@/types/category';
 
 interface SearchUnifiedOptions {
   pageCap?: number;
@@ -163,6 +169,46 @@ class ProductsService {
     return out;
   }
 
+  /**
+   * MOCK :: LOFN-G30/G31/G32/G33 — atributos estruturados da peça.
+   * Backend Lofn só expõe `description: string`. Aqui derivamos atributos
+   * determinísticos a partir do `productId` para visual estável entre reloads.
+   *
+   * TODO(LOFN-G30): trocar por GET /products/:productId/attributes quando
+   * o backend modelar o schema de atributos.
+   */
+  getAttributes(productId: number, categoryId: number | null): Promise<ProductAttributes> {
+    return Promise.resolve(buildMockAttributes(productId, categoryId));
+  }
+
+  /**
+   * MOCK :: LOFN-G34 — produtos relacionados. Endpoint não existe; usamos a
+   * categoria do produto atual e filtramos pelo próprio `productId`.
+   * Limita ao número solicitado para o rail.
+   *
+   * TODO(LOFN-G34): substituir por GET /products/:productId/related quando
+   * o backend modelar curadoria/recomendação.
+   */
+  async getRelated(
+    productId: number,
+    categoryId: number | null,
+    limit = 6,
+  ): Promise<ProductInfo[]> {
+    if (categoryId === null) return [];
+    // Import dinâmico evita ciclo com CategoriesService (que já importa
+    // `applyFilters`/`applySort` daqui).
+    const { categoriesService } = await import('@/Services/CategoriesService');
+    const tree = await categoriesService.getMarketplaceCategoryTree();
+    const slug = findCategorySlugById(tree, categoryId);
+    if (!slug) return [];
+    const result = await categoriesService.searchInCategory(
+      slug,
+      filterDefaults,
+      1,
+    );
+    return result.products.filter(p => p.productId !== productId).slice(0, limit);
+  }
+
   // --- internos ----------------------------------------------------------------
 
   private async searchInternal(
@@ -302,6 +348,193 @@ export const applySort = (
     default:
       return sortByRelevance(items, keyword);
   }
+};
+
+// ── Helpers para produtos relacionados (LOFN-G34) ───────────────────────────
+
+const findCategorySlugById = (
+  tree: CategoryNode[],
+  categoryId: number,
+): string | null => {
+  for (const node of tree) {
+    if (node.categoryId === categoryId) return node.slug;
+    if (node.children) {
+      const fromChild = findCategorySlugById(node.children, categoryId);
+      if (fromChild) return fromChild;
+    }
+  }
+  return null;
+};
+
+// ── Mocks dos atributos estruturados (LOFN-G30..G33) ────────────────────────
+
+const hashProductId = (productId: number): number => {
+  // FNV-1a-ish hash determinístico — evita Math.random() para garantir
+  // estabilidade entre reloads e entre dispositivos.
+  let h = Math.abs(productId | 0) + 0x9e3779b1;
+  h = (h ^ (h >>> 16)) * 0x85ebca6b;
+  h = (h ^ (h >>> 13)) * 0xc2b2ae35;
+  h = h ^ (h >>> 16);
+  return Math.abs(h);
+};
+
+const pick = <T>(items: readonly T[], hash: number, salt: number): T => {
+  const idx = (hash + salt * 31) % items.length;
+  return items[idx]!;
+};
+
+// MOCK :: LOFN-G31 — pool determinístico de condições.
+const CONDITION_POOL: readonly ProductCondition[] = [
+  'new-with-tag',
+  'semi-new',
+  'great',
+  'signs-of-use',
+];
+
+const CONDITION_LABELS: Record<ProductCondition, string> = {
+  'new-with-tag': 'Nova com etiqueta',
+  'semi-new': 'Semi-nova',
+  'great': 'Usada em ótimo estado',
+  'signs-of-use': 'Usada com sinais',
+};
+
+const BRAND_POOL = [
+  'Adidas', 'Nike', 'Vans', 'Converse', 'Reebok', 'New Balance',
+  'Schutz', 'Arezzo', 'Melissa', 'Anacapri', 'Havaianas', 'Puma',
+] as const;
+
+const COLOR_POOL = [
+  'Branco', 'Preto', 'Bege', 'Cobre', 'Marrom', 'Verde oliva',
+  'Azul marinho', 'Vermelho', 'Areia', 'Cinza',
+] as const;
+
+const MATERIAL_POOL = [
+  'Couro liso', 'Lona', 'Camurça', 'Tecido sintético', 'Couro envernizado',
+  'Algodão encerado',
+] as const;
+
+const COMPOSITION_POOL = [
+  '100% couro bovino', '100% algodão', 'Lona + sintético',
+  '60% couro / 40% têxtil', 'Couro PU + forro têxtil',
+] as const;
+
+const GENDER_POOL = ['Unissex', 'Feminino', 'Masculino'] as const;
+
+const MODEL_POOL = [
+  'Stan Smith', 'Air Max', 'Old Skool', 'Chuck Taylor', '990 v5',
+  'Classic Leather', 'Plataforma', 'Trekking',
+] as const;
+
+// MOCK :: LOFN-G32 — Tabela canônica de tamanhos calçado BR/US/EU.
+const SIZE_BR_POOL = ['35', '36', '37', '38', '39', '40', '41', '42'] as const;
+
+const SIZE_US: Record<string, string> = {
+  '35': '5', '36': '5,5', '37': '6,5', '38': '7',
+  '39': '7,5', '40': '8,5', '41': '9', '42': '10',
+};
+
+const SIZE_EU: Record<string, string> = {
+  '35': '36', '36': '37', '37': '38', '38': '39',
+  '39': '40', '40': '41', '41': '42', '42': '43',
+};
+
+// MOCK :: LOFN-G33 — Medidas dependentes do tamanho BR (calçados).
+const FOOT_LENGTH_CM: Record<string, string> = {
+  '35': '23,0', '36': '23,5', '37': '24,0', '38': '24,5',
+  '39': '25,5', '40': '26,0', '41': '27,0', '42': '27,5',
+};
+
+const FOOT_WIDTH_CM: Record<string, string> = {
+  '35': '8,5', '36': '8,8', '37': '9,0', '38': '9,2',
+  '39': '9,5', '40': '9,7', '41': '10,0', '42': '10,3',
+};
+
+const SOLE_HEIGHT_CM = ['2,0', '2,4', '2,8', '3,0', '3,4'] as const;
+
+const COLLECTION_POOL = [
+  'Originals · clássica', 'Coleção 2023', 'Edição comemorativa',
+  'Linha Performance', 'Resort 2024',
+] as const;
+
+const buildMockAttributes = (
+  productId: number,
+  categoryId: number | null,
+): ProductAttributes => {
+  const hash = hashProductId(productId);
+
+  // Calçado tem o conjunto mais rico hoje. Para outras categorias, a seção
+  // "Medidas" fica vazia (decisão do README — backend ainda não modela).
+  // MOCK :: LOFN-G33 — gating por categoria.
+  const isFootwear = isFootwearCategoryId(categoryId);
+
+  const condition = pick(CONDITION_POOL, hash, 1);
+  const brand = pick(BRAND_POOL, hash, 2);
+  const color = pick(COLOR_POOL, hash, 3);
+  const material = pick(MATERIAL_POOL, hash, 4);
+  const composition = pick(COMPOSITION_POOL, hash, 5);
+  const gender = pick(GENDER_POOL, hash, 6);
+  const model = pick(MODEL_POOL, hash, 7);
+  const collection = pick(COLLECTION_POOL, hash, 8);
+  const sizeBr = isFootwear ? pick(SIZE_BR_POOL, hash, 9) : null;
+
+  const groups: ProductAttributesGroup[] = [
+    {
+      title: 'Geral',
+      items: [
+        { label: 'Condição', value: CONDITION_LABELS[condition] },
+        ...(sizeBr ? [{ label: 'Tamanho', value: sizeBr }] : []),
+        { label: 'Marca', value: brand },
+        { label: 'Cor predominante', value: color },
+        { label: 'Material', value: material },
+        { label: 'Composição', value: composition },
+        { label: 'Gênero', value: gender },
+        { label: 'Modelo', value: model },
+        { label: 'Coleção', value: collection },
+      ],
+    },
+    {
+      title: 'Medidas',
+      items: sizeBr
+        ? [
+            { label: 'Tamanho BR', value: sizeBr },
+            { label: 'Tamanho US', value: SIZE_US[sizeBr] ?? '—' },
+            { label: 'Tamanho EU', value: SIZE_EU[sizeBr] ?? '—' },
+            { label: 'Comprimento da palmilha', value: `${FOOT_LENGTH_CM[sizeBr] ?? '—'} cm` },
+            { label: 'Largura interna', value: `${FOOT_WIDTH_CM[sizeBr] ?? '—'} cm` },
+            { label: 'Altura do solado', value: `${pick(SOLE_HEIGHT_CM, hash, 10)} cm` },
+            { label: 'Cabedal', value: 'Cano baixo' },
+          ]
+        : [],
+    },
+    {
+      title: 'Cuidados',
+      items: [
+        { label: 'Lavagem', value: 'Apenas pano úmido' },
+        { label: 'Secagem', value: 'Sombra, longe de calor' },
+        { label: 'Hidratação', value: 'Creme neutro de couro' },
+        { label: 'Não pode', value: 'Imersão, alvejante, máquina' },
+        { label: 'Armazenamento', value: 'Forma neutra ou papel' },
+      ],
+    },
+  ];
+
+  return {
+    productId,
+    condition,
+    sizeBr,
+    groups,
+  };
+};
+
+// MOCK :: LOFN-G33 — heurística de "calçado" enquanto não há flag oficial.
+// Conhecemos só `categoryId` numérico e a árvore tem `slug`. O hook de medidas
+// detalhadas é gateado client-side; quando o backend modelar tipo de produto,
+// trocar por flag oficial.
+const isFootwearCategoryId = (categoryId: number | null): boolean => {
+  if (categoryId === null) return false;
+  // Heurística determinística por id — usa o último dígito como gating até
+  // 50% dos produtos, suficiente pro mock.
+  return categoryId % 2 === 0;
 };
 
 export const productsService = new ProductsService();

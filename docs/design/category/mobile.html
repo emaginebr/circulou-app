@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Circulou — Calçados (Mobile 360 px)</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="../home/tokens.css" />
+
+  <style>
+    /* ─────────────────────────────────────────────────────────────
+     * Mockup mobile 360 px — segue o wrapper .device da home/mobile.html
+     * Ordem otimizada para mobile commerce:
+     *   1. Header compacto (logo + menu + sacola + busca)
+     *   2. Breadcrumb minimalista + título + count
+     *   3. Subcategorias em chips horizontal-scroll (touch-friendly)
+     *   4. Toolbar inline: ordenação + botão FILTROS (abre drawer)
+     *   5. Grid 2-col de produtos (12 cards, 1ª página)
+     *   6. Paginação compacta (← 1 2 3 … 5 →)
+     *   7. Bloco "Lojas com peças nesta categoria" — collapsable
+     *      (details/summary nativo) para não dominar a tela
+     *   8. FAB sticky bottom: "Filtrar" + contador de filtros ativos
+     *   9. Drawer de filtros (referência visual no fim da página)
+     *  10. Estado vazio (referência visual)
+     * ─────────────────────────────────────────────────────────── */
+
+    body { background: #2a2a2a; padding: 1.5rem 0; }
+    .device {
+      width: 360px;
+      margin: 0 auto;
+      background: var(--color-page);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      border-radius: 28px;
+      overflow: hidden;
+      position: relative;
+    }
+    .device-label {
+      text-align: center;
+      color: #999;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .m-container { padding: 0 1.25rem; }
+    .m-section { padding: 1.5rem 0; }
+
+    /* ── Header (idêntico ao home/mobile.html) ────────────────────── */
+    .m-header {
+      background: var(--color-page);
+      padding: 0.75rem 1.25rem;
+      border-bottom: 1px solid var(--color-line);
+      position: sticky; top: 0; z-index: 5;
+    }
+    .m-header-row { display: flex; align-items: center; justify-content: space-between; }
+    .m-icon-btn {
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      background: transparent; border: none;
+      color: var(--color-cedro); font-size: 1.4rem;
+      border-radius: var(--radius-sm); cursor: pointer;
+    }
+    .m-icon-btn:focus-visible { outline: 2px solid var(--color-cobre); outline-offset: 2px; }
+    .m-search-wrap { margin-top: 0.75rem; position: relative; }
+    .m-search-wrap input {
+      width: 100%; height: 44px;
+      border-radius: 999px;
+      border: 1.5px solid var(--color-line);
+      background: var(--color-surface);
+      padding: 0 1rem 0 2.5rem;
+      font-family: var(--font-sans); font-size: 0.9rem;
+      color: var(--color-tinta);
+    }
+    .m-search-wrap span {
+      position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%);
+      color: var(--color-mute);
+    }
+
+    /* ── Hero compacto da categoria ───────────────────────────────── */
+    .m-cat-hero {
+      background: var(--color-surface-warm);
+      padding: 1.25rem 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--color-line);
+      position: relative; overflow: hidden;
+    }
+    .m-cat-hero::before {
+      content: ""; position: absolute;
+      width: 160px; height: 160px;
+      right: -50px; top: -60px;
+      background: var(--color-ambar);
+      border-radius: 48% 52% 38% 62% / 42% 38% 62% 58%;
+      opacity: 0.45; pointer-events: none;
+    }
+    .m-breadcrumb {
+      display: flex; align-items: center; gap: 0.4rem;
+      font-family: var(--font-mono); font-size: 0.65rem;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--color-mute); margin-bottom: 0.6rem;
+    }
+    .m-breadcrumb a { color: var(--color-mute); text-decoration: none; }
+    .m-breadcrumb [aria-current="page"] { color: var(--color-cedro); font-weight: 500; }
+    .m-cat-title {
+      font-size: 1.85rem;
+      color: var(--color-cedro);
+      margin-bottom: 0.35rem;
+      position: relative; z-index: 1;
+    }
+    .m-cat-count {
+      font-family: var(--font-mono); font-size: 0.78rem;
+      color: var(--color-oliva);
+      position: relative; z-index: 1;
+    }
+    .m-cat-count strong {
+      font-family: var(--font-display); font-size: 1.05rem;
+      color: var(--color-cobre); font-weight: 400;
+    }
+    .m-cat-copy {
+      font-size: 0.85rem; color: var(--color-ink-soft);
+      margin-top: 0.6rem; position: relative; z-index: 1;
+    }
+
+    /* ── Subcategorias em chips horizontal scroll ─────────────────── */
+    .m-subcats {
+      display: flex; gap: 0.5rem;
+      overflow-x: auto; padding: 0.85rem 1.25rem;
+      background: var(--color-page);
+      border-bottom: 1px solid var(--color-line);
+      scrollbar-width: none;
+    }
+    .m-subcats::-webkit-scrollbar { display: none; }
+    .m-subcat-chip {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      flex-shrink: 0;
+      padding: 0.45rem 0.85rem;
+      border-radius: 999px;
+      background: var(--color-surface);
+      border: 1.5px solid var(--color-line);
+      color: var(--color-cedro);
+      font-size: 0.85rem; font-weight: 500;
+      text-decoration: none;
+      white-space: nowrap;
+      min-height: 36px;
+    }
+    .m-subcat-chip--active {
+      background: var(--color-cedro);
+      border-color: var(--color-cedro);
+      color: var(--color-cru);
+    }
+    .m-subcat-chip .m-subcat-count {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      padding: 0.05rem 0.4rem;
+      border-radius: 999px;
+      background: var(--color-areia-soft);
+      color: var(--color-cedro);
+    }
+    .m-subcat-chip--active .m-subcat-count {
+      background: var(--color-cobre); color: var(--color-cru);
+    }
+
+    /* ── Toolbar inline (sort + filtros) ──────────────────────────── */
+    .m-toolbar {
+      display: flex; gap: 0.5rem;
+      padding: 0.85rem 1.25rem;
+      background: var(--color-page);
+      border-bottom: 1px solid var(--color-line);
+      align-items: center;
+      position: sticky;
+      top: 113px; /* header (~64) + busca/categorias acumulada — ajustado em prod */
+      z-index: 4;
+      background: rgba(245, 236, 229, 0.96);
+      backdrop-filter: blur(8px);
+    }
+    .m-toolbar-meta {
+      flex: 1;
+      font-size: 0.75rem;
+      color: var(--color-mute);
+    }
+    .m-toolbar-meta strong { color: var(--color-cedro); }
+    .m-toolbar-btn {
+      min-height: 40px;
+      padding: 0 0.85rem;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--color-line);
+      background: var(--color-surface);
+      color: var(--color-cedro);
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+    }
+    .m-toolbar-btn[data-active] {
+      background: var(--color-cedro);
+      color: var(--color-cru);
+      border-color: var(--color-cedro);
+    }
+    .m-toolbar-btn .badge {
+      background: var(--color-ambar);
+      color: var(--color-cedro);
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      padding: 0.05rem 0.4rem;
+      border-radius: 999px;
+    }
+
+    /* ── Grid de produtos 2-col ───────────────────────────────────── */
+    .m-product-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      padding: 1.25rem;
+    }
+    .m-product {
+      background: var(--color-surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--color-line);
+      position: relative;
+      display: flex; flex-direction: column;
+    }
+    .m-product .img {
+      aspect-ratio: 3 / 4;
+      background-size: cover; background-position: center;
+      background-color: var(--color-areia-soft);
+      position: relative;
+    }
+    .m-product-fav {
+      position: absolute; top: 8px; right: 8px;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: rgba(245,236,229,0.9);
+      backdrop-filter: blur(4px);
+      border: none; cursor: pointer;
+      color: var(--color-cedro);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.95rem;
+    }
+    .m-product-badge {
+      position: absolute; top: 8px; left: 8px;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 500;
+    }
+    .m-product-badge--sale { background: var(--color-cobre); color: var(--color-cru); }
+    .m-product-badge--new { background: var(--color-ambar); color: var(--color-cedro); }
+    .m-product .body {
+      padding: 0.6rem 0.7rem 0.8rem;
+      display: flex; flex-direction: column; gap: 0.25rem;
+      flex: 1;
+    }
+    .m-product .brand-label {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-cedro);
+    }
+    .m-product .name {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--color-tinta);
+      line-height: 1.25;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .m-product .meta {
+      font-size: 0.7rem;
+      color: var(--color-mute);
+    }
+    .m-product .price {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      color: var(--color-cobre);
+      margin-top: auto;
+      padding-top: 0.3rem;
+    }
+    .m-product .price-old {
+      font-size: 0.7rem;
+      color: var(--color-mute);
+      text-decoration: line-through;
+      font-family: var(--font-sans);
+      margin-left: 0.35rem;
+    }
+
+    /* ── Paginação compacta ──────────────────────────────────────── */
+    .m-pagination {
+      display: flex; justify-content: center; align-items: center;
+      gap: 0.3rem;
+      padding: 1.5rem 1.25rem 2rem;
+      flex-wrap: wrap;
+    }
+    .m-page-btn {
+      min-width: 40px; min-height: 40px;
+      padding: 0 0.5rem;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--color-line);
+      background: var(--color-surface);
+      color: var(--color-cedro);
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .m-page-btn[aria-current="page"] {
+      background: var(--color-cedro);
+      color: var(--color-cru);
+      border-color: var(--color-cedro);
+      font-family: var(--font-display);
+    }
+    .m-page-btn[aria-disabled="true"] {
+      opacity: 0.4; pointer-events: none;
+    }
+
+    /* ── Bloco "Lojas com peças" — collapsable ────────────────────── */
+    .m-stores-block {
+      background: var(--color-areia);
+      border-top: 1px solid var(--color-line);
+      border-bottom: 1px solid var(--color-line);
+    }
+    .m-stores-block summary {
+      list-style: none; cursor: pointer;
+      padding: 1.25rem;
+      display: flex; justify-content: space-between; align-items: center;
+      min-height: 56px;
+    }
+    .m-stores-block summary::-webkit-details-marker { display: none; }
+    .m-stores-block summary h2 {
+      font-size: 1.2rem; color: var(--color-cedro);
+      margin: 0; font-family: var(--font-display);
+    }
+    .m-stores-block summary .meta {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--color-mute);
+      margin-top: 0.15rem;
+    }
+    .m-stores-block summary .chevron {
+      font-size: 1.2rem; color: var(--color-cedro);
+      transition: transform 200ms ease;
+    }
+    .m-stores-block[open] summary .chevron {
+      transform: rotate(180deg);
+    }
+    .m-stores-rail {
+      display: flex; gap: 0.75rem;
+      overflow-x: auto;
+      padding: 0 1.25rem 1.25rem;
+      scrollbar-width: none;
+    }
+    .m-stores-rail::-webkit-scrollbar { display: none; }
+    .m-store-card {
+      flex: 0 0 200px;
+      background: var(--color-surface);
+      border-radius: var(--radius);
+      padding: 0.85rem;
+      border: 1px solid var(--color-line);
+      text-decoration: none;
+      color: var(--color-ink);
+      display: flex; flex-direction: column; gap: 0.5rem;
+    }
+    .m-store-logo {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background-size: cover; background-position: center;
+      background-color: var(--color-areia-soft);
+      border: 1.5px solid var(--color-line);
+    }
+    .m-store-name {
+      font-size: 0.9rem; font-weight: 600; color: var(--color-cedro);
+    }
+    .m-store-meta {
+      font-family: var(--font-mono); font-size: 0.65rem;
+      color: var(--color-mute);
+    }
+    .m-store-cta {
+      font-size: 0.75rem; font-weight: 600; color: var(--color-cobre);
+    }
+
+    /* ── FAB sticky bottom — atalho a Filtrar/Ordenar ────────────── */
+    .m-fab-bar {
+      position: sticky; bottom: 0;
+      background: rgba(245, 236, 229, 0.96);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--color-line);
+      padding: 0.75rem 1.25rem;
+      display: flex; gap: 0.5rem;
+      z-index: 10;
+    }
+    .m-fab-bar button {
+      flex: 1;
+      min-height: 48px;
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      border-radius: var(--radius);
+      font-weight: 600;
+      cursor: pointer;
+      border: 1.5px solid var(--color-cedro);
+      background: var(--color-cedro);
+      color: var(--color-cru);
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+    }
+    .m-fab-bar button.ghost {
+      background: transparent;
+      color: var(--color-cedro);
+    }
+    .m-fab-bar .fab-badge {
+      background: var(--color-ambar);
+      color: var(--color-cedro);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 0.05rem 0.45rem;
+      border-radius: 999px;
+    }
+
+    /* ── Drawer de filtros — REFERÊNCIA visual (renderizada dentro do
+         device com label "↳ drawer aberto"). Em produção é overlay full
+         screen com slide-in animation. ────────────────────────────── */
+    .m-drawer-ref {
+      margin: 1.5rem 0 0;
+      border-top: 4px solid var(--color-cobre);
+    }
+    .m-drawer-label {
+      background: var(--color-cedro);
+      color: var(--color-cru);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 0.5rem 1.25rem;
+      text-align: center;
+    }
+    .m-drawer {
+      background: var(--color-surface);
+      padding: 1rem 1.25rem;
+    }
+    .m-drawer-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--color-line);
+      margin-bottom: 1rem;
+    }
+    .m-drawer-header h2 {
+      font-size: 1.3rem; color: var(--color-cedro); margin: 0;
+    }
+    .m-filter-group {
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--color-line);
+    }
+    .m-filter-group:last-child { border-bottom: none; }
+    .m-filter-title {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--color-cedro);
+      margin-bottom: 0.75rem;
+      display: flex; justify-content: space-between;
+    }
+    .m-filter-clear {
+      font-family: var(--font-sans);
+      font-size: 0.7rem;
+      color: var(--color-cobre);
+      text-transform: none; letter-spacing: 0;
+      background: transparent; border: none; cursor: pointer;
+      text-decoration: underline;
+    }
+    .m-filter-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+    .m-filter-option {
+      display: flex; align-items: center; gap: 0.6rem;
+      min-height: 44px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 0.3rem 0.25rem;
+    }
+    .m-filter-option input { width: 18px; height: 18px; accent-color: var(--color-cedro); }
+    .m-filter-option .opt-count {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--color-mute);
+    }
+
+    .m-size-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem;
+    }
+    .m-size-pill {
+      min-height: 40px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--color-line);
+      background: var(--color-surface);
+      color: var(--color-ink);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .m-size-pill[aria-pressed="true"] {
+      background: var(--color-cedro); color: var(--color-cru);
+      border-color: var(--color-cedro);
+    }
+
+    .m-price-track {
+      height: 4px; background: var(--color-line);
+      border-radius: 999px; position: relative;
+      margin: 0.85rem 0 0.85rem;
+    }
+    .m-price-fill {
+      position: absolute; left: 15%; right: 32%;
+      top: 0; bottom: 0;
+      background: var(--color-cedro);
+      border-radius: 999px;
+    }
+    .m-price-thumb {
+      width: 18px; height: 18px;
+      background: var(--color-cobre);
+      border: 2px solid var(--color-cru);
+      border-radius: 50%;
+      position: absolute; top: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: var(--shadow-sm);
+    }
+    .m-price-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .m-price-input {
+      height: 44px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--color-line);
+      background: var(--color-surface);
+      padding: 0 0.65rem;
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+    }
+
+    .m-drawer-footer {
+      position: sticky; bottom: 0;
+      background: var(--color-surface);
+      border-top: 1px solid var(--color-line);
+      padding: 0.85rem 0;
+      margin-top: 1rem;
+      display: flex; gap: 0.5rem;
+    }
+    .m-drawer-footer button {
+      flex: 1; min-height: 48px;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      cursor: pointer;
+      border: 1.5px solid var(--color-cedro);
+    }
+    .m-drawer-footer .clear-all {
+      background: transparent; color: var(--color-cedro);
+    }
+    .m-drawer-footer .apply {
+      background: var(--color-cedro); color: var(--color-cru);
+    }
+
+    /* ── Estado vazio (referência visual) ────────────────────────── */
+    .m-empty-ref {
+      padding: 2rem 1.25rem;
+      text-align: center;
+      border-top: 1px dashed var(--color-line);
+      background: var(--color-page);
+    }
+    .m-empty-ref-card {
+      padding: 2rem 1.25rem;
+      background: var(--color-surface);
+      border: 1px dashed var(--color-line);
+      border-radius: var(--radius-lg);
+    }
+    .m-empty-illu {
+      width: 72px; height: 72px;
+      margin: 0 auto 1rem;
+      background: var(--color-ambar);
+      border-radius: var(--radius-blob);
+      position: relative;
+    }
+    .m-empty-illu::before {
+      content: "○"; position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.25rem; color: var(--color-cedro);
+      font-family: var(--font-display);
+    }
+
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+  </style>
+</head>
+<body>
+  <p class="device-label">↳ recorte mobile · viewport 360 px · página de categoria</p>
+
+  <div class="device">
+
+    <!-- HEADER -->
+    <header class="m-header">
+      <div class="m-header-row">
+        <button class="m-icon-btn" aria-label="Abrir menu">☰</button>
+
+        <a href="../home/index.html" style="display: flex; align-items: center; gap: 0.4rem; text-decoration: none;">
+          <span aria-hidden="true" style="
+            width: 24px; height: 24px; background: var(--color-ambar);
+            clip-path: polygon(50% 0%, 60% 18%, 78% 14%, 74% 32%, 92% 36%,
+              80% 52%, 96% 64%, 78% 70%, 84% 90%, 64% 84%, 50% 100%,
+              36% 84%, 16% 90%, 22% 70%, 4% 64%, 20% 52%, 8% 36%, 26% 32%,
+              22% 14%, 40% 18%);
+          "></span>
+          <span style="font-family: var(--font-display); color: var(--color-oliva); font-size: 1.2rem;">Circulou</span>
+        </a>
+
+        <button class="m-icon-btn" aria-label="Sacola — 0 itens" style="position: relative;">
+          🛍
+          <span aria-hidden="true" style="
+            position: absolute; top: 4px; right: 4px;
+            background: var(--color-cobre); color: var(--color-cru);
+            font-size: 0.65rem; padding: 0.05rem 0.35rem;
+            border-radius: 999px; font-weight: 700;
+          ">0</span>
+        </button>
+      </div>
+
+      <div class="m-search-wrap">
+        <span aria-hidden="true">🔍</span>
+        <label for="m-q" class="sr-only">Buscar peças</label>
+        <input id="m-q" type="search" placeholder="Buscar em Calçados…" />
+      </div>
+    </header>
+
+    <main>
+
+      <!-- ── HERO COMPACTO DA CATEGORIA ── -->
+      <section class="m-cat-hero" aria-labelledby="m-cat-title">
+        <nav class="m-breadcrumb" aria-label="Caminho de navegação">
+          <a href="../home/mobile.html">Início</a>
+          <span aria-hidden="true">›</span>
+          <span aria-current="page">Calçados</span>
+        </nav>
+
+        <h1 id="m-cat-title" class="m-cat-title">Calçados</h1>
+
+        <p class="m-cat-count" aria-live="polite">
+          <strong>247</strong> peças circulando · 42 lojas
+        </p>
+
+        <p class="m-cat-copy">
+          Tênis garimpados, botas que atravessam estações. Curadoria editorial e preço justo.
+        </p>
+      </section>
+
+      <!-- ── SUBCATEGORIAS HORIZONTAL SCROLL ── -->
+      <nav class="m-subcats" aria-label="Subcategorias">
+        <a href="#" class="m-subcat-chip m-subcat-chip--active" aria-current="page">
+          Tudo <span class="m-subcat-count">247</span>
+        </a>
+        <a href="#" class="m-subcat-chip">
+          Tênis <span class="m-subcat-count">124</span>
+        </a>
+        <a href="#" class="m-subcat-chip">
+          Sapatilhas <span class="m-subcat-count">38</span>
+        </a>
+        <a href="#" class="m-subcat-chip">
+          Botas <span class="m-subcat-count">52</span>
+        </a>
+        <a href="#" class="m-subcat-chip">
+          Sandálias <span class="m-subcat-count">33</span>
+        </a>
+      </nav>
+
+      <!-- ── TOOLBAR INLINE (sort + filtros) ── -->
+      <div class="m-toolbar">
+        <span class="m-toolbar-meta">
+          <strong>1–12</strong> de 247
+        </span>
+        <button class="m-toolbar-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
+          ↕ Relevância
+        </button>
+        <button class="m-toolbar-btn" type="button" data-active aria-haspopup="dialog" aria-expanded="false">
+          ☰ Filtros <span class="badge">3</span>
+        </button>
+      </div>
+
+      <!-- ── GRID DE PRODUTOS (12 cards = 1ª página) ── -->
+      <section class="m-product-grid" role="list" aria-label="Calçados disponíveis">
+
+        <article class="m-product circulou-card" role="listitem">
+          <div class="img" style="background-image: url('https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&auto=format&fit=crop');">
+            <span class="m-product-badge m-product-badge--sale">−65%</span>
+            <button class="m-product-fav" aria-label="Favoritar">♡</button>
+          </div>
+          <div class="body">
+            <span class="brand-label">Nike</span>
+            <span class="name">Air Max 90 vermelho retrô</span>
+            <span class="meta">Tam. 39 · semi-novo</span>
+            <span class="price">R$ 219,00<span class="price-old">R$ 629</span></span>
+          </div>
+        </article>
+
+        <article class="m-product circulou-card" role="listitem">
+          <div class="img" style="background-image: url('https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=400&auto=format&fit=crop');">
+            <span class="m-product-badge m-product-badge--new">Novo</span>
+            <button class="m-product-fav" aria-label="Favoritar">♡</button>
+          </div>
+          <div class="body">
+            <span class="brand-label">Adidas</span>
+            <span class="name">Stan Smith branco clássico</span>
+            <span class="meta">Tam. 38 · novo c/ etiqueta</span>
+            <span class="price">R$ 289,00<span class="price-old">R$ 549</span></span>
+          </div>
+        </article>
+
+        <article class="m-product circulou-card" role="listitem">
+          <div class="img" style="background-image: url('https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=400&auto=format&fit=crop');">
+            <button class="m-product-fav" aria-label="Favoritar">♡</button>
+          </div>
+          <div class="body">
+            <span class="brand-label">Vans</span>
+            <span class="name">Old Skool preto, lona</span>
+            <span class="meta">Tam. 40 · ótimo</span>
+            <span class="price">R$ 119,00<span class="price-old">R$ 369</span></span>
+          </div>
+        </article>
+
+        <article class="m-product circulou-card" role="listitem">
+          <div class="img" style="background-image: url('https://images.unsplash.com/photo-1605348532760-6753d2c43329?w=400&auto=format&fit=crop');">
+            <span class="m-product-badge m-product-badge--sale">−72%</span>
+            <button class="m-product-fav" aria-label="Favoritar">♡</button>
+          </div>
+          <div class="body">
+            <span class="brand-label">Melissa</span>
+            <span class="name">Sapatilha bicolor caramelo</span>
+            <span class="meta">Tam. 36 · pouco uso</span>
+            <span class="price">R$ 79,00<span class="price-old">R$ 289</span></span>
+          </div>
+        </article>
+
+        <article class="m-product circulou-card" role="listitem">
+          <div class="img" style="background-image: url('https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=400&auto=format&fit=crop');">
+            <button class="m-product-fav" aria-label="Favoritar">♡</button>
+          </div>
+          <div class="body">
+            <span class="brand-label">Arezzo</span>
+            <span class="name">Bota cano alto camurça</span>
+            <span class="meta">Tam. 37 · semi-novo</span>
+            <span class="price">R$ 249,00<span class="price-old">R$ 799</span></span>
+          </div>
+        </article>
+
+        <article class="m-product circulou-card" role="listitem">
+          <div class="img" style="background-image: url('https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&auto=format&fit=crop');">
+            <span class="m-product-badge m-product-badge--sale">−55%</span>
+            <button class="m-product-fav" aria-label="Favoritar">♡</button>
+          </div>
+          <div class="body">
+            <span class="brand-label">Converse</span>
+            <span class="name">Chuck Taylor amarelo mostarda</span>
+            <span class="meta">Tam. 38 · ótimo</span>
+            <span class="price">R$ 99,00<span class="price-old">R$ 219</span></span>
+          </div>
+        </article>
+
+        <article class="m-product circulou-card" role="listitem">
+          <div class="img" style="background-image: url('https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&auto=format&fit=crop');">
+            <button class="m-product-fav" aria-label="Favoritar">♡</button>
+          </div>
+          <div class="body">
+            <span class="brand-label">Schutz</span>
+            <span class="name">Sandália plataforma cobre</span>
+            <span class="meta">Tam. 36 · novo c/ etiqueta</span>
+            <span class="price">R$ 189,00<span class="price-old">R$ 549</span></span>
+          </div>
+        </article>
+
+        <article class="m-product circulou-card" role="listitem">
+          <div class="img" style="background-image: url('https://images.unsplash.com/photo-1539185441755-769473a23570?w=400&auto=format&fit=crop');">
+            <span class="m-product-badge m-product-badge--sale">−40%</span>
+            <button class="m-product-fav" aria-label="Favoritar">♡</button>
+          </div>
+          <div class="body">
+            <span class="brand-label">Reebok</span>
+            <span class="name">Classic Leather areia</span>
+            <span class="meta">Tam. 41 · semi-novo</span>
+            <span class="price">R$ 149,00<span class="price-old">R$ 249</span></span>
+          </div>
+        </article>
+
+        <article class="m-product circulou-card" role="listitem">
+          <div class="img" style="background-image: url('https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=400&auto=format&fit=crop');">
+            <button class="m-product-fav" aria-label="Favoritar">♡</button>
+          </div>
+          <div class="body">
+            <span class="brand-label">New Balance</span>
+            <span class="name">990 v5 cinza grafite</span>
+            <span class="meta">Tam. 42 · pouco uso</span>
+            <span class="price">R$ 459,00<span class="price-old">R$ 1.299</span></span>
+          </div>
+        </article>
+
+        <article class="m-product circulou-card" role="listitem">
+          <div class="img" style="background-image: url('https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&auto=format&fit=crop');">
+            <span class="m-product-badge m-product-badge--sale">−68%</span>
+            <button class="m-product-fav" aria-label="Favoritar">♡</button>
+          </div>
+          <div class="body">
+            <span class="brand-label">Havaianas</span>
+            <span class="name">Slim flatform bege</span>
+            <span class="meta">Tam. 35 · novo c/ etiqueta</span>
+            <span class="price">R$ 39,00<span class="price-old">R$ 119</span></span>
+          </div>
+        </article>
+
+        <article class="m-product circulou-card" role="listitem">
+          <div class="img" style="background-image: url('https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=400&auto=format&fit=crop');">
+            <button class="m-product-fav" aria-label="Favoritar">♡</button>
+          </div>
+          <div class="body">
+            <span class="brand-label">Dr. Martens</span>
+            <span class="name">1460 cherry red, couro</span>
+            <span class="meta">Tam. 38 · ótimo</span>
+            <span class="price">R$ 599,00<span class="price-old">R$ 1.499</span></span>
+          </div>
+        </article>
+
+        <article class="m-product circulou-card" role="listitem">
+          <div class="img" style="background-image: url('https://images.unsplash.com/photo-1578116922645-3976907a7671?w=400&auto=format&fit=crop');">
+            <span class="m-product-badge m-product-badge--sale">−50%</span>
+            <button class="m-product-fav" aria-label="Favoritar">♡</button>
+          </div>
+          <div class="body">
+            <span class="brand-label">Capodarte</span>
+            <span class="name">Mocassim couro caramelo</span>
+            <span class="meta">Tam. 39 · semi-novo</span>
+            <span class="price">R$ 199,00<span class="price-old">R$ 399</span></span>
+          </div>
+        </article>
+
+      </section>
+
+      <!-- ── PAGINAÇÃO COMPACTA ── -->
+      <nav class="m-pagination" aria-label="Paginação dos resultados">
+        <a href="#" class="m-page-btn" aria-disabled="true" aria-label="Página anterior">←</a>
+        <a href="#" class="m-page-btn" aria-current="page" aria-label="Página 1, atual">1</a>
+        <a href="#" class="m-page-btn" aria-label="Página 2">2</a>
+        <a href="#" class="m-page-btn" aria-label="Página 3">3</a>
+        <span style="color: var(--color-mute); padding: 0 0.3rem;" aria-hidden="true">…</span>
+        <a href="#" class="m-page-btn" aria-label="Página 5">5</a>
+        <a href="#" class="m-page-btn" aria-label="Próxima página">→</a>
+      </nav>
+
+      <!-- ── LOJAS COM PRODUTOS — collapsable ── -->
+      <details class="m-stores-block" open>
+        <summary>
+          <div>
+            <h2>Lojas com calçados</h2>
+            <span class="meta">42 brechós com peças nesta categoria</span>
+          </div>
+          <span class="chevron" aria-hidden="true">▾</span>
+        </summary>
+
+        <div class="m-stores-rail" role="list">
+          <a href="#" class="m-store-card" role="listitem">
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <div class="m-store-logo" style="background-image: url('https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=120&auto=format&fit=crop');"></div>
+              <div>
+                <div class="m-store-name">Brechó Vintage SP</div>
+                <div class="m-store-meta">São Paulo · SP</div>
+              </div>
+            </div>
+            <span class="m-store-cta">38 peças →</span>
+          </a>
+          <a href="#" class="m-store-card" role="listitem">
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <div class="m-store-logo" style="background-image: url('https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=120&auto=format&fit=crop');"></div>
+              <div>
+                <div class="m-store-name">Garimpo da Lia</div>
+                <div class="m-store-meta">BH · MG</div>
+              </div>
+            </div>
+            <span class="m-store-cta">29 peças →</span>
+          </a>
+          <a href="#" class="m-store-card" role="listitem">
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <div class="m-store-logo" style="background-image: url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop');"></div>
+              <div>
+                <div class="m-store-name">Sebo da Moda</div>
+                <div class="m-store-meta">Curitiba · PR</div>
+              </div>
+            </div>
+            <span class="m-store-cta">24 peças →</span>
+          </a>
+          <a href="#" class="m-store-card" role="listitem">
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <div class="m-store-logo" style="background-image: url('https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=120&auto=format&fit=crop');"></div>
+              <div>
+                <div class="m-store-name">Atelier do Brechó</div>
+                <div class="m-store-meta">POA · RS</div>
+              </div>
+            </div>
+            <span class="m-store-cta">19 peças →</span>
+          </a>
+          <a href="#" class="m-store-card" role="listitem">
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <div class="m-store-logo" style="background-image: url('https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=120&auto=format&fit=crop');"></div>
+              <div>
+                <div class="m-store-name">Brechó Sol Lunar</div>
+                <div class="m-store-meta">Rio · RJ</div>
+              </div>
+            </div>
+            <span class="m-store-cta">17 peças →</span>
+          </a>
+        </div>
+      </details>
+
+      <!-- ── REFERÊNCIA VISUAL: DRAWER DE FILTROS ── -->
+      <!-- Renderizado inline para preview. Em produção é overlay
+           full-screen com slide-in da direita, focus-trap e
+           role="dialog" + aria-labelledby. -->
+      <div class="m-drawer-ref">
+        <div class="m-drawer-label">↳ Drawer aberto: Filtros (referência visual)</div>
+        <div class="m-drawer">
+          <div class="m-drawer-header">
+            <h2>Filtros</h2>
+            <button class="m-icon-btn" aria-label="Fechar filtros">✕</button>
+          </div>
+
+          <div class="m-filter-group">
+            <h3 class="m-filter-title">
+              Faixa de preço
+              <button class="m-filter-clear" type="button">limpar</button>
+            </h3>
+            <div class="m-price-track" aria-hidden="true">
+              <div class="m-price-fill"></div>
+              <div class="m-price-thumb" style="left: 15%;"></div>
+              <div class="m-price-thumb" style="left: 68%;"></div>
+            </div>
+            <div class="m-price-row">
+              <input type="text" class="m-price-input" value="R$ 30" aria-label="Preço mínimo" />
+              <input type="text" class="m-price-input" value="R$ 280" aria-label="Preço máximo" />
+            </div>
+          </div>
+
+          <div class="m-filter-group">
+            <h3 class="m-filter-title">Condição</h3>
+            <ul class="m-filter-list">
+              <li>
+                <label class="m-filter-option">
+                  <input type="checkbox" /> <span>Nova com etiqueta</span>
+                  <span class="opt-count">38</span>
+                </label>
+              </li>
+              <li>
+                <label class="m-filter-option">
+                  <input type="checkbox" checked /> <span>Semi-nova</span>
+                  <span class="opt-count">112</span>
+                </label>
+              </li>
+              <li>
+                <label class="m-filter-option">
+                  <input type="checkbox" /> <span>Usada em ótimo estado</span>
+                  <span class="opt-count">71</span>
+                </label>
+              </li>
+              <li>
+                <label class="m-filter-option">
+                  <input type="checkbox" /> <span>Usada com sinais</span>
+                  <span class="opt-count">26</span>
+                </label>
+              </li>
+            </ul>
+          </div>
+
+          <div class="m-filter-group">
+            <h3 class="m-filter-title">
+              Tamanho
+              <button class="m-filter-clear" type="button">limpar</button>
+            </h3>
+            <div class="m-size-grid" role="group" aria-label="Tamanho">
+              <button class="m-size-pill" type="button" aria-pressed="false">34</button>
+              <button class="m-size-pill" type="button" aria-pressed="false">35</button>
+              <button class="m-size-pill" type="button" aria-pressed="true">36</button>
+              <button class="m-size-pill" type="button" aria-pressed="true">37</button>
+              <button class="m-size-pill" type="button" aria-pressed="false">38</button>
+              <button class="m-size-pill" type="button" aria-pressed="false">39</button>
+              <button class="m-size-pill" type="button" aria-pressed="false">40</button>
+              <button class="m-size-pill" type="button" aria-pressed="false">41</button>
+            </div>
+          </div>
+
+          <div class="m-filter-group">
+            <h3 class="m-filter-title">Marca</h3>
+            <ul class="m-filter-list">
+              <li>
+                <label class="m-filter-option">
+                  <input type="checkbox" checked /> <span>Adidas</span>
+                  <span class="opt-count">22</span>
+                </label>
+              </li>
+              <li>
+                <label class="m-filter-option">
+                  <input type="checkbox" /> <span>Nike</span>
+                  <span class="opt-count">31</span>
+                </label>
+              </li>
+              <li>
+                <label class="m-filter-option">
+                  <input type="checkbox" /> <span>Vans</span>
+                  <span class="opt-count">14</span>
+                </label>
+              </li>
+            </ul>
+            <button class="m-filter-clear" type="button" style="margin-top: 0.4rem;">Ver todas (42) →</button>
+          </div>
+
+          <div class="m-drawer-footer">
+            <button class="clear-all" type="button">Limpar tudo</button>
+            <button class="apply" type="button">Aplicar (164)</button>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ── REFERÊNCIA VISUAL: ESTADO VAZIO ── -->
+      <div class="m-empty-ref">
+        <p style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--color-mute); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem;">
+          ↳ Estado vazio (referência)
+        </p>
+        <div class="m-empty-ref-card">
+          <div class="m-empty-illu" aria-hidden="true"></div>
+          <h2 style="font-size: 1.2rem; color: var(--color-cedro); margin-bottom: 0.5rem;">
+            Nada por aqui ainda
+          </h2>
+          <p style="color: var(--color-ink-soft); font-size: 0.85rem; margin-bottom: 1rem;">
+            Volte logo — peças novas chegam todo dia.
+          </p>
+          <a href="../home/mobile.html" class="circulou-btn-primary" style="width: 100%;">Voltar para a home</a>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- FAB sticky bottom — atalho a Filtrar/Ordenar -->
+    <div class="m-fab-bar">
+      <button class="ghost" type="button" aria-haspopup="listbox">
+        ↕ Ordenar
+      </button>
+      <button type="button" aria-haspopup="dialog">
+        ☰ Filtrar <span class="fab-badge">3</span>
+      </button>
+    </div>
+
+  </div>
+
+</body>
+</html>

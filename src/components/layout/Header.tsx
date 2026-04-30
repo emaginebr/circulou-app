@@ -1,9 +1,8 @@
-import { useEffect } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/hooks/useCart';
-import { useCategories } from '@/hooks/useCategories';
 import { SearchBar } from '@/components/search/SearchBar';
+import { CategoryMegaMenu } from '@/components/layout/CategoryMegaMenu';
 
 const LOGO_CLIP =
   'polygon(50% 0%, 60% 18%, 78% 14%, 74% 32%, 92% 36%, 80% 52%, 96% 64%, 78% 70%, 84% 90%, 64% 84%, 50% 100%, 36% 84%, 16% 90%, 22% 70%, 4% 64%, 20% 52%, 8% 36%, 26% 32%, 22% 14%, 40% 18%)';
@@ -36,17 +35,11 @@ const NavItem = ({ to, label, active, ariaLabel }: NavItemProps) => (
 export const Header = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const { itemCount } = useCart();
-  const { global: globalCategories, loadGlobal } = useCategories();
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const initialQuery = searchParams.get('q') ?? '';
-  const activeCategoryId = Number(searchParams.get('cat')) || null;
   const isHome = location.pathname === '/';
   const isShopping = isHome || location.pathname.startsWith('/search');
-
-  useEffect(() => {
-    if (globalCategories.length === 0) void loadGlobal();
-  }, [globalCategories.length, loadGlobal]);
 
   return (
     <header
@@ -67,16 +60,11 @@ export const Header = () => {
               clipPath: LOGO_CLIP,
             }}
           />
-          <span
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '1.6rem',
-              color: 'var(--color-oliva)',
-              letterSpacing: '0.02em',
-            }}
-          >
-            Circulou
-          </span>
+          <img
+            src="/circulou-logo.png"
+            alt="Circulou"
+            style={{ height: 42, width: 'auto', display: 'block' }}
+          />
         </Link>
 
         <div className="grow max-w-[480px] hidden md:block">
@@ -84,7 +72,7 @@ export const Header = () => {
         </div>
 
         <nav
-          className="flex items-center gap-4 lg:gap-6"
+          className="flex items-center gap-6"
           aria-label="Navegação principal"
         >
           <NavItem to="/" label="Comprar" active={isShopping} />
@@ -145,28 +133,8 @@ export const Header = () => {
         <SearchBar initialValue={initialQuery} />
       </div>
 
-      {/* Barra de categorias (sticky com o header). */}
-      <div
-        style={{
-          background: 'var(--color-surface-warm)',
-          borderTop: '1px solid var(--color-line)',
-        }}
-      >
-        <div
-          className="mx-auto w-full max-w-[1280px] flex items-center gap-6 px-6 lg:px-10 py-2 overflow-x-auto"
-          style={{ scrollbarWidth: 'none' }}
-        >
-          <NavItem to="/" label="Novidades" active={isHome} />
-          {globalCategories.map(cat => (
-            <NavItem
-              key={cat.categoryId}
-              to={`/search?cat=${cat.categoryId}`}
-              label={cat.name}
-              active={activeCategoryId === cat.categoryId}
-            />
-          ))}
-        </div>
-      </div>
+      {/* Mega menu de categorias (raízes na barra, hover abre painel). */}
+      <CategoryMegaMenu />
     </header>
   );
 };

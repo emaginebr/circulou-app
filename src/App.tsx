@@ -18,6 +18,7 @@ import { CartPage } from '@/pages/CartPage';
 import { CheckoutPage } from '@/pages/CheckoutPage';
 import { OrderConfirmationPage } from '@/pages/OrderConfirmationPage';
 import { StorePage } from '@/pages/StorePage';
+import { CategoryPage } from '@/pages/CategoryPage';
 
 const basename = import.meta.env.VITE_SITE_BASENAME || '/';
 
@@ -53,6 +54,10 @@ const router = createBrowserRouter(
         { path: '/cart', element: <CartPage /> },
         { path: '/checkout', element: <CheckoutPage /> },
         { path: '/order-confirmation', element: <OrderConfirmationPage /> },
+        // Categoria global — slug pode ser hierárquico (ex: cursos/programacao).
+        // Mantém em penúltimo: rotas estáticas/dinâmicas mais específicas (login, /loja/..., etc.)
+        // ganham via score; só URLs sem prefixo conhecido caem aqui.
+        { path: '/:slug/*', element: <CategoryPage /> },
         { path: '*', element: <NotFoundPage /> },
       ],
     },

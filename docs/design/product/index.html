@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Circulou — Tênis Adidas Stan Smith branco couro (PDP)</title>
+
+  <!-- Fontes Google: idênticas à Home/Categoria -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Reuso dos tokens da Home (paleta, tipografia, helpers .circulou-*) -->
+  <link rel="stylesheet" href="../home/tokens.css" />
+
+  <style>
+    /*
+     * Página de Detalhes do Produto (PDP) — mockup standalone.
+     *
+     * Convenções idênticas à Home/Categoria: classes próprias (NUNCA Tailwind),
+     * comentários inline indicando o equivalente Tailwind para porte futuro.
+     *
+     * Layout desktop:
+     *   1. Header global (idêntico à home — sticky)
+     *   2. Breadcrumb + título sutil acima da galeria (full container)
+     *   3. Layout 2 colunas:
+     *      3a. Galeria — thumbs verticais (esquerda) + foto principal grande (direita)
+     *      3b. Painel de informação — sticky até atingir características
+     *   4. Características (Geral / Medidas / Cuidados — 3 colunas em desktop)
+     *   5. Descrição editorial (prosa em <article>)
+     *   6. Quem vendeu (loja parceira em destaque)
+     *   7. Você também vai gostar (rail horizontal de cards de produto)
+     *   8. Footer global
+     *
+     * Defesa contra overflow horizontal (lição da Categoria).
+     */
+    html, body { overflow-x: clip; }
+
+    /* ── Layout container — ~ mx-auto max-w-[1280px] px-6 lg:px-10 ── */
+    .container { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; }
+    @media (min-width: 1024px) { .container { padding: 0 2.5rem; } }
+
+    /* ── Header reutilizado da home (idêntico) ───────────────────── */
+    .site-header {
+      background: var(--color-page);
+      border-bottom: 1px solid var(--color-line);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .nav-link {
+      font-size: 0.9rem; font-weight: 500;
+      color: var(--color-cedro);
+      padding: 0.5rem 0.25rem; position: relative;
+      text-decoration: none;
+    }
+    .nav-link:hover { color: var(--color-cobre); }
+    .nav-link[data-active]::after {
+      content: ""; position: absolute;
+      left: 0; right: 0; bottom: -2px;
+      height: 2px; background: var(--color-ambar);
+      border-radius: 2px;
+    }
+    .search-input {
+      width: 100%; height: 44px;
+      border-radius: 999px;
+      border: 1.5px solid var(--color-line);
+      background: var(--color-surface);
+      padding: 0 1rem 0 2.75rem;
+      font-family: var(--font-sans);
+      color: var(--color-tinta);
+    }
+    .search-input:focus {
+      outline: none; border-color: var(--color-oliva);
+      box-shadow: 0 0 0 3px rgba(74, 75, 44, 0.18);
+    }
+
+    /* ── Breadcrumb + título acima da galeria ─────────────────────── */
+    .pdp-top {
+      padding: 1.75rem 0 1rem;
+    }
+    .breadcrumb {
+      display: flex; align-items: center; gap: 0.5rem;
+      flex-wrap: wrap;
+      font-family: var(--font-mono); font-size: var(--text-caption);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--color-mute);
+    }
+    .breadcrumb a { color: var(--color-mute); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--color-cobre); }
+    .breadcrumb [aria-current="page"] {
+      color: var(--color-cedro); font-weight: 500;
+      max-width: 36ch;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .breadcrumb-sep { color: var(--color-line); }
+
+    /* ── Layout principal: galeria + painel ──────────────────────── */
+    .pdp-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      gap: 3rem;
+      padding-bottom: 3rem;
+    }
+    /* Filhos com min-width: 0 para que a coluna respeite o `1fr`
+       e não estoure por causa de imagens grandes. */
+    .pdp-layout > * { min-width: 0; }
+    @media (max-width: 1023px) {
+      .pdp-layout {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+    }
+
+    /* ── Galeria: thumbs verticais à esquerda + foto principal ─────
+       Galeria é sticky no desktop — ela "fica parada" enquanto o
+       usuário rola pelo painel direito (que agora tem TUDO: descrição,
+       frete, vendedor, características). */
+    .gallery {
+      display: grid;
+      grid-template-columns: 88px minmax(0, 1fr);
+      gap: 1rem;
+      align-items: start;
+      position: sticky;
+      top: 113px; /* header(64) + barra-cat(49) */
+      align-self: start;
+    }
+    .gallery > * { min-width: 0; }
+    @media (max-width: 1023px) {
+      .gallery { position: static; }
+    }
+
+    /* Lista de thumbs vertical, com scroll interno se passar de 6 fotos */
+    .gallery-thumbs {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      list-style: none;
+      padding: 0; margin: 0;
+      max-height: 640px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-line) transparent;
+    }
+    .gallery-thumb {
+      width: 88px; height: 110px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      background-color: var(--color-areia-soft);
+      background-size: cover;
+      background-position: center;
+      border: 1.5px solid var(--color-line);
+      cursor: pointer;
+      padding: 0;
+      transition: border-color 120ms ease, transform 120ms ease;
+      flex-shrink: 0;
+    }
+    .gallery-thumb:hover { transform: translateY(-2px); border-color: var(--color-cedro); }
+    .gallery-thumb[aria-current="true"] {
+      border-color: var(--color-cobre);
+      box-shadow: 0 0 0 2px rgba(174, 83, 26, 0.25);
+    }
+    .gallery-thumb:focus-visible {
+      outline: 2px solid var(--color-cobre);
+      outline-offset: 2px;
+    }
+
+    /* Foto principal — proporção 4/5 (look editorial) */
+    .gallery-main {
+      position: relative;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      aspect-ratio: 4 / 5;
+      background-color: var(--color-areia-soft);
+      background-size: cover;
+      background-position: center;
+      box-shadow: var(--shadow);
+      cursor: zoom-in; /* indica zoom ao hover */
+    }
+    /* Etiqueta editorial sobre a foto (só na PDP — confirma a vibe brechó) */
+    .gallery-main::after {
+      content: "";
+      position: absolute; inset: 0;
+      box-shadow: inset 0 0 0 1px rgba(77, 40, 1, 0.06);
+      pointer-events: none;
+      border-radius: var(--radius-lg);
+    }
+    /* Setas/pontos como FALLBACK (mantidos visíveis no desktop p/ a11y) */
+    .gallery-arrow {
+      position: absolute;
+      top: 50%; transform: translateY(-50%);
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: rgba(245, 236, 229, 0.92);
+      backdrop-filter: blur(4px);
+      border: 1.5px solid var(--color-line);
+      color: var(--color-cedro);
+      font-size: 1.25rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 120ms ease;
+    }
+    .gallery-arrow:hover { background: var(--color-cru); }
+    .gallery-arrow:focus-visible {
+      outline: 2px solid var(--color-cobre); outline-offset: 2px;
+    }
+    .gallery-arrow--prev { left: 0.85rem; }
+    .gallery-arrow--next { right: 0.85rem; }
+    .gallery-dots {
+      position: absolute; bottom: 0.85rem; left: 50%;
+      transform: translateX(-50%);
+      display: flex; gap: 0.4rem;
+      padding: 0.35rem 0.6rem;
+      background: rgba(20, 20, 20, 0.32);
+      border-radius: 999px;
+    }
+    .gallery-dots .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: rgba(245, 236, 229, 0.55);
+    }
+    .gallery-dots .dot[aria-current="true"] {
+      background: var(--color-ambar); width: 18px; border-radius: 999px;
+    }
+    /* Contador "1/5" — feedback visual extra, não substitui aria-label */
+    .gallery-counter {
+      position: absolute;
+      top: 0.85rem; left: 0.85rem;
+      padding: 0.3rem 0.7rem;
+      background: rgba(20, 20, 20, 0.55);
+      color: var(--color-cru);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      border-radius: 999px;
+      backdrop-filter: blur(4px);
+    }
+    .gallery-zoom-hint {
+      position: absolute;
+      bottom: 0.85rem; right: 0.85rem;
+      padding: 0.35rem 0.7rem;
+      background: rgba(245, 236, 229, 0.92);
+      color: var(--color-cedro);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-radius: 999px;
+    }
+
+    /* Em layouts mais estreitos a galeria vira coluna única (thumbs viram horizontal) */
+    @media (max-width: 1023px) {
+      .gallery {
+        grid-template-columns: 1fr;
+      }
+      .gallery-thumbs {
+        flex-direction: row;
+        max-height: none;
+        overflow-x: auto;
+        order: 2;
+      }
+      .gallery-thumb {
+        width: 72px; height: 88px; flex-shrink: 0;
+      }
+    }
+
+    /* ── Painel de informação (direita) ────────────────────────────
+       Coluna principal de leitura. NÃO é mais sticky — agora a galeria
+       é que fica fixa enquanto o usuário rola por nome → preço →
+       qty/CTAs → descrição → frete → vendedor → características. */
+    .info-panel {
+      display: flex; flex-direction: column;
+      gap: 1.1rem;
+    }
+
+    .brand-line {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-cedro);
+      display: flex; align-items: center; gap: 0.55rem;
+    }
+    .brand-line a {
+      color: var(--color-cedro); text-decoration: none;
+      border-bottom: 1px dashed var(--color-line);
+      padding-bottom: 1px;
+    }
+    .brand-line a:hover { color: var(--color-cobre); border-color: var(--color-cobre); }
+
+    .product-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.75rem, 3vw, 2.5rem);
+      color: var(--color-cedro);
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+    }
+
+    .category-chip {
+      align-self: flex-start;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.4rem 0.85rem;
+      border-radius: 999px;
+      background: var(--color-oliva-soft);
+      color: var(--color-oliva);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      text-decoration: none;
+      border: 1px solid transparent;
+      transition: border-color 120ms ease, transform 120ms ease;
+    }
+    .category-chip::before { content: "○"; color: var(--color-oliva); }
+    .category-chip:hover {
+      border-color: var(--color-oliva);
+      transform: translateY(-1px);
+    }
+    .category-chip:focus-visible {
+      outline: 2px solid var(--color-cobre); outline-offset: 2px;
+    }
+
+    /* Bloco de preço */
+    .price-block {
+      display: flex; align-items: baseline; gap: 0.85rem; flex-wrap: wrap;
+      padding: 0.5rem 0;
+      border-top: 1px dashed var(--color-line);
+      border-bottom: 1px dashed var(--color-line);
+    }
+    .price-block .pdp-price-now {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 3.5vw, 2.75rem);
+      color: var(--color-cobre);
+      line-height: 1;
+    }
+    .price-block .pdp-price-old {
+      font-size: 1rem;
+      color: var(--color-mute);
+      text-decoration: line-through;
+    }
+    .price-block .pdp-discount-badge {
+      display: inline-flex; align-items: center;
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      background: var(--color-cobre);
+      color: var(--color-cru);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.05em;
+    }
+
+    /* Badges de estado (ao lado do preço, abaixo) */
+    .state-badges {
+      display: flex; gap: 0.5rem; flex-wrap: wrap;
+    }
+    .state-badge {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .state-badge--unique {
+      background: var(--color-ambar);
+      color: var(--color-cedro);
+    }
+    .state-badge--new {
+      background: var(--color-ambar-soft);
+      color: var(--color-cedro);
+    }
+    .state-badge--sold {
+      background: var(--color-tinta);
+      color: var(--color-cru);
+    }
+
+    /* ── Linha consolidada: Qty + Adicionar à sacola + Favoritar ───
+       Pedido do cliente: os três controles ficam lado a lado em uma
+       única linha de ação. Layout grid: stepper(auto) | CTA primário(1fr)
+       | favoritar(auto). Em viewports mais estreitos (<=520px dentro do
+       painel direito), quebra para qty+fav na primeira linha e CTA full
+       width abaixo, mantendo affordance touch. */
+    .qty-cta-row {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    @media (max-width: 520px) {
+      .qty-cta-row {
+        grid-template-columns: auto auto;
+        grid-template-areas:
+          "qty fav"
+          "cta cta";
+        gap: 0.6rem 0.75rem;
+      }
+      .qty-cta-row .qty-stepper { grid-area: qty; }
+      .qty-cta-row .cta-fav { grid-area: fav; }
+      .qty-cta-row .cta-primary-pdp { grid-area: cta; }
+    }
+    .qty-stepper {
+      display: inline-flex; align-items: center;
+      border: 1.5px solid var(--color-cedro);
+      border-radius: var(--radius);
+      overflow: hidden;
+      height: 52px;
+    }
+    .qty-stepper button {
+      width: 44px; height: 100%;
+      background: transparent;
+      border: none;
+      color: var(--color-cedro);
+      font-size: 1.15rem;
+      cursor: pointer;
+      font-family: var(--font-sans);
+    }
+    .qty-stepper button:hover { background: var(--color-cru); }
+    .qty-stepper button:focus-visible {
+      outline: 2px solid var(--color-cobre); outline-offset: -2px;
+    }
+    .qty-stepper button[disabled] { opacity: 0.4; cursor: not-allowed; }
+    .qty-stepper input {
+      width: 48px; height: 100%;
+      border: none; text-align: center;
+      font-family: var(--font-sans); font-weight: 600;
+      color: var(--color-cedro);
+      background: transparent;
+      border-left: 1px solid var(--color-line);
+      border-right: 1px solid var(--color-line);
+      -moz-appearance: textfield;
+    }
+    .qty-stepper input::-webkit-outer-spin-button,
+    .qty-stepper input::-webkit-inner-spin-button {
+      -webkit-appearance: none; margin: 0;
+    }
+    .cta-fav {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 52px; height: 52px;
+      border-radius: var(--radius);
+      border: 1.5px solid var(--color-cedro);
+      background: var(--color-surface);
+      color: var(--color-cedro);
+      font-size: 1.4rem;
+      cursor: pointer;
+      transition: background 120ms ease, color 120ms ease;
+      flex-shrink: 0;
+    }
+    .cta-fav:hover {
+      background: var(--color-cedro);
+      color: var(--color-cru);
+    }
+    .cta-fav[aria-pressed="true"] {
+      background: var(--color-cobre);
+      color: var(--color-cru);
+      border-color: var(--color-cobre);
+    }
+    .cta-fav:focus-visible {
+      outline: 3px solid var(--color-ambar); outline-offset: 2px;
+    }
+    .cta-primary-pdp {
+      min-height: 52px;
+      font-size: 1rem;
+      width: 100%;
+    }
+    .qty-limit {
+      font-size: 0.78rem; color: var(--color-mute);
+      font-family: var(--font-mono);
+      margin-top: -0.4rem; /* aproxima do bloco de qty */
+    }
+
+    /* ── Descrição editorial INLINE no painel ──────────────────────
+       Versão do .description-article sem max-width: 64ch — agora ela
+       vive dentro do painel de info, então respeita a largura da coluna
+       (~520-560 px em desktop). */
+    .description-inline {
+      padding: 1rem 0;
+      border-top: 1px dashed var(--color-line);
+    }
+    .description-inline .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-cobre);
+      margin-bottom: 0.85rem;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .description-inline .eyebrow::before { content: "○ ○ ○"; color: var(--color-ambar); letter-spacing: 0.2em; }
+    .description-inline h2 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      color: var(--color-cedro);
+      line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+    .description-inline p {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--color-ink-soft);
+      margin-bottom: 1rem;
+    }
+    .description-inline p:last-child { margin-bottom: 0; }
+    .description-inline p strong { color: var(--color-cedro); font-weight: 600; }
+
+    /* ── Calcular frete (bloco dedicado) ───────────────────────────
+       Substitui a antiga linha "Calcular frete:" do micro-info. Agora
+       é um bloco standalone com input + botão + área de resultado. */
+    .shipping-block {
+      padding: 1rem 0;
+      border-top: 1px dashed var(--color-line);
+    }
+    .shipping-block .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-cedro);
+      margin-bottom: 0.65rem;
+      display: inline-flex; align-items: center; gap: 0.45rem;
+    }
+    .shipping-block .eyebrow::before { content: "✈"; color: var(--color-cobre); font-size: 0.9rem; }
+    .cep-row {
+      display: flex; gap: 0.5rem;
+      max-width: 360px;
+    }
+    .cep-row input {
+      flex: 1; min-width: 0;
+      height: 44px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--color-line);
+      background: var(--color-surface);
+      padding: 0 0.85rem;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--color-ink);
+      letter-spacing: 0.05em;
+    }
+    .cep-row input:focus {
+      outline: none;
+      border-color: var(--color-oliva);
+      box-shadow: 0 0 0 3px rgba(74, 75, 44, 0.18);
+    }
+    .cep-row button {
+      height: 44px;
+      padding: 0 1.1rem;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--color-cedro);
+      background: var(--color-cedro);
+      color: var(--color-cru);
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .cep-row button:hover { background: var(--color-cobre); border-color: var(--color-cobre); }
+    .cep-help {
+      display: inline-block;
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--color-cobre);
+      text-decoration: underline;
+    }
+    /* Resultado mock: linha do método de envio */
+    .shipping-result {
+      margin-top: 0.85rem;
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 0.85rem;
+      align-items: baseline;
+      padding: 0.7rem 0.85rem;
+      background: var(--color-areia-soft);
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+    }
+    .shipping-result .ship-method { font-weight: 600; color: var(--color-cedro); }
+    .shipping-result .ship-eta { color: var(--color-mute); font-size: 0.85rem; }
+    .shipping-result .ship-price {
+      font-family: var(--font-display);
+      color: var(--color-cobre);
+      font-size: 1.05rem;
+    }
+    .shipping-disclaimer {
+      margin-top: 0.6rem;
+      font-size: 0.75rem;
+      color: var(--color-mute);
+      font-family: var(--font-mono);
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Vendido por (compacto, dentro do painel) ──────────────────
+       Versão reduzida do .seller-card. Logo + nome + 1 linha de stats
+       + CTA. Cabe na coluna direita sem competir com a descrição. */
+    .seller-compact {
+      display: grid;
+      grid-template-columns: 56px minmax(0, 1fr) auto;
+      gap: 0.85rem;
+      align-items: center;
+      padding: 0.95rem 1rem;
+      background: var(--color-areia);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-line);
+    }
+    @media (max-width: 520px) {
+      .seller-compact {
+        grid-template-columns: 48px minmax(0, 1fr);
+        gap: 0.75rem;
+      }
+      .seller-compact .seller-compact-cta { grid-column: 1 / -1; margin-top: 0.5rem; }
+    }
+    .seller-compact-logo {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background-size: cover; background-position: center;
+      background-color: var(--color-areia-soft);
+      border: 2px solid var(--color-cru);
+    }
+    @media (max-width: 520px) {
+      .seller-compact-logo { width: 48px; height: 48px; }
+    }
+    .seller-compact-info .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-mute);
+      margin-bottom: 0.15rem;
+    }
+    .seller-compact-info h3 {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      color: var(--color-cedro);
+      line-height: 1.1;
+      margin: 0 0 0.25rem;
+    }
+    .seller-compact-stats {
+      font-size: 0.78rem;
+      color: var(--color-ink-soft);
+      display: flex; gap: 0.5rem; flex-wrap: wrap;
+      align-items: center;
+    }
+    .seller-compact-stats .seller-stars {
+      color: var(--color-ambar);
+    }
+    .seller-compact-cta {
+      font-size: 0.85rem;
+      padding: 0.55rem 0.9rem;
+      min-height: 40px;
+    }
+
+    /* ── Características INLINE no painel (2 col em desktop) ───────
+       Layout: Geral | Medidas (lado a lado), Cuidados ocupando linha
+       inteira embaixo. Em ≤640 px tudo vira 1 coluna. */
+    .attrs-inline {
+      padding-top: 1rem;
+      border-top: 1px dashed var(--color-line);
+    }
+    .attrs-inline .attrs-inline-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-cedro);
+      margin-bottom: 1rem;
+      display: inline-flex; align-items: center; gap: 0.45rem;
+    }
+    .attrs-inline .attrs-inline-eyebrow::before { content: "▣"; color: var(--color-cobre); }
+    .attrs-inline-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 1.75rem;
+    }
+    .attrs-inline-grid .attrs-group--care { grid-column: 1 / -1; }
+    @media (max-width: 640px) {
+      .attrs-inline-grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+      }
+      .attrs-inline-grid .attrs-group--care { grid-column: auto; }
+    }
+
+    /* ── Características (3 colunas em desktop) ──────────────────── */
+    .attrs-section {
+      background: var(--color-surface);
+      border-top: 1px solid var(--color-line);
+      border-bottom: 1px solid var(--color-line);
+      padding: var(--space-section-tight) 0;
+    }
+    .attrs-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 2.5rem;
+    }
+    @media (max-width: 1023px) {
+      .attrs-grid { grid-template-columns: 1fr; gap: 2rem; }
+    }
+    .attrs-group h3 {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-cedro);
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1.5px solid var(--color-cedro);
+      font-weight: 500;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .attrs-group h3::before {
+      content: "▲";
+      color: var(--color-cobre);
+      font-size: 0.7rem;
+    }
+    .attrs-group--measures h3::before { content: "◇"; }
+    .attrs-group--care h3::before { content: "○"; }
+
+    .attrs-list {
+      margin: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+      gap: 0.6rem 1rem;
+      align-items: baseline;
+    }
+    .attrs-list dt {
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      color: var(--color-mute);
+      font-weight: 500;
+    }
+    .attrs-list dd {
+      margin: 0;
+      font-family: var(--font-sans);
+      font-size: 0.92rem;
+      color: var(--color-ink);
+      font-weight: 600;
+    }
+    .attrs-list dd code {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--color-cedro);
+      background: var(--color-areia-soft);
+      padding: 0.1rem 0.4rem;
+      border-radius: var(--radius-sm);
+    }
+
+    /* ── Descrição editorial ─────────────────────────────────────── */
+    .description-section {
+      padding: var(--space-section-tight) 0;
+      background: var(--color-page);
+    }
+    .description-article {
+      max-width: 64ch;
+      margin: 0 auto;
+    }
+    .description-article .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-cobre);
+      margin-bottom: 1rem;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .description-article .eyebrow::before { content: "○ ○ ○"; color: var(--color-ambar); letter-spacing: 0.2em; }
+    .description-article h2 {
+      font-size: var(--text-display-md);
+      color: var(--color-cedro);
+      margin-bottom: 1.5rem;
+    }
+    .description-article p {
+      font-size: var(--text-body-lg);
+      line-height: 1.75;
+      color: var(--color-ink-soft);
+      margin-bottom: 1.25rem;
+    }
+    .description-article p strong {
+      color: var(--color-cedro); font-weight: 600;
+    }
+
+    /* ── Quem vendeu (loja em destaque) ──────────────────────────── */
+    .seller-section {
+      background: var(--color-areia);
+      padding: var(--space-section-tight) 0;
+      border-top: 1px solid var(--color-line);
+    }
+    .seller-card {
+      display: grid;
+      grid-template-columns: 96px minmax(0, 1fr) auto;
+      gap: 1.5rem;
+      align-items: center;
+      background: var(--color-surface);
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem 1.75rem;
+      box-shadow: var(--shadow-sm);
+    }
+    @media (max-width: 767px) {
+      .seller-card {
+        grid-template-columns: 64px minmax(0, 1fr);
+        gap: 1rem;
+      }
+      .seller-card .seller-cta { grid-column: 1 / -1; }
+    }
+    .seller-logo {
+      width: 96px; height: 96px;
+      border-radius: 50%;
+      background-size: cover; background-position: center;
+      background-color: var(--color-areia-soft);
+      border: 2px solid var(--color-line);
+    }
+    @media (max-width: 767px) {
+      .seller-logo { width: 64px; height: 64px; }
+    }
+    .seller-info .seller-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-mute);
+      margin-bottom: 0.4rem;
+    }
+    .seller-info h3 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      color: var(--color-cedro);
+      line-height: 1.1;
+      margin-bottom: 0.4rem;
+    }
+    .seller-stats {
+      display: flex; gap: 1.25rem; flex-wrap: wrap;
+      font-size: 0.85rem;
+      color: var(--color-ink-soft);
+    }
+    .seller-stats span {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+    }
+    .seller-stats strong {
+      color: var(--color-cedro); font-weight: 600;
+    }
+    .seller-stars {
+      color: var(--color-ambar); letter-spacing: 0.05em;
+    }
+
+    /* ── Você também vai gostar (rail horizontal) ────────────────── */
+    .related-section {
+      padding: var(--space-section-tight) 0 var(--space-section);
+    }
+    .related-header {
+      display: flex; justify-content: space-between; align-items: end;
+      gap: 1rem; flex-wrap: wrap;
+      margin-bottom: 1.75rem;
+    }
+    /* Reuso integral do .product-card e .circulou-rail dos tokens. */
+    .related-card {
+      width: 240px;
+    }
+    .related-card .img {
+      aspect-ratio: 3 / 4;
+      background-size: cover; background-position: center;
+      background-color: var(--color-areia-soft);
+      position: relative;
+    }
+    .related-card .body {
+      padding: 0.85rem 0.95rem 1rem;
+      display: flex; flex-direction: column; gap: 0.35rem;
+    }
+    .related-card .product-store {
+      font-size: 0.75rem;
+      color: var(--color-mute);
+      display: flex; align-items: center; gap: 0.35rem;
+      padding-top: 0.35rem;
+      border-top: 1px dashed var(--color-line);
+      margin-top: 0.4rem;
+    }
+    .related-card .product-store::before {
+      content: "○"; color: var(--color-oliva);
+    }
+
+    /* ── Footer (idêntico) ────────────────────────────────────────── */
+    .site-footer {
+      background: var(--color-tinta);
+      color: var(--color-cru);
+    }
+    .footer-link { color: var(--color-areia); font-size: 0.9rem; text-decoration: none; }
+    .footer-link:hover { color: var(--color-ambar); }
+
+    /* ── Utilities ────────────────────────────────────────────────── */
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .items-center { align-items: center; }
+    .items-end { align-items: end; }
+    .justify-between { justify-content: space-between; }
+    .gap-2 { gap: 0.5rem; }
+    .gap-4 { gap: 1rem; }
+    .gap-6 { gap: 1.5rem; }
+    .grid-4 { display: grid; gap: 1rem; grid-template-columns: repeat(4, 1fr); }
+    .py-section-tight { padding-top: var(--space-section-tight); padding-bottom: var(--space-section-tight); }
+    .text-center { text-align: center; }
+
+    .skip-link {
+      position: absolute; top: -40px; left: 0;
+      background: var(--color-cedro); color: var(--color-cru);
+      padding: 0.5rem 1rem; z-index: 100;
+    }
+    .skip-link:focus { top: 0; }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Pular para o conteúdo principal</a>
+
+  <!-- ─────────── HEADER GLOBAL (idêntico à Home/Categoria) ─────────── -->
+  <header class="site-header">
+    <div class="container flex items-center justify-between" style="padding-top: 1rem; padding-bottom: 1rem;">
+      <a href="../home/index.html" class="flex items-center gap-2" style="text-decoration: none;">
+        <span aria-hidden="true" style="
+          width: 36px; height: 36px; background: var(--color-ambar);
+          clip-path: polygon(50% 0%, 60% 18%, 78% 14%, 74% 32%, 92% 36%,
+            80% 52%, 96% 64%, 78% 70%, 84% 90%, 64% 84%, 50% 100%,
+            36% 84%, 16% 90%, 22% 70%, 4% 64%, 20% 52%, 8% 36%, 26% 32%,
+            22% 14%, 40% 18%);
+        "></span>
+        <span style="font-family: var(--font-display); font-size: 1.6rem; color: var(--color-oliva); letter-spacing: 0.02em;">
+          Circulou
+        </span>
+      </a>
+
+      <div style="flex: 1; max-width: 480px; margin: 0 2rem; position: relative;">
+        <span aria-hidden="true" style="
+          position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
+          color: var(--color-mute); font-size: 1.1rem;
+        ">🔍</span>
+        <label for="q" class="sr-only">Buscar peças</label>
+        <input id="q" type="search" class="search-input" placeholder="Busque por marca, peça ou estilo…" />
+      </div>
+
+      <nav class="flex items-center gap-6" aria-label="Navegação principal">
+        <a href="#" class="nav-link" data-active>Comprar</a>
+        <a href="#" class="nav-link">Quero vender</a>
+        <a href="#" class="nav-link">ONGs</a>
+        <a href="#" class="nav-link" aria-label="Favoritos">♡</a>
+        <a href="#" class="nav-link" aria-label="Entrar">Entrar</a>
+        <a href="#" class="circulou-btn-primary" aria-label="Sacola — 0 itens" style="min-height: 40px; padding: 0.5rem 1rem;">
+          Sacola <span style="
+            background: var(--color-ambar); color: var(--color-cedro);
+            border-radius: 999px; padding: 0.05rem 0.45rem; font-size: 0.8rem;
+            font-weight: 700;
+          ">0</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Barra de categorias (idêntica) — "Calçados" fica ativo -->
+    <div style="background: var(--color-surface-warm); border-top: 1px solid var(--color-line);">
+      <div class="container flex items-center gap-6" style="padding-top: 0.6rem; padding-bottom: 0.6rem; overflow-x: auto;">
+        <a href="#" class="nav-link">✦ Novas com etiquetas</a>
+        <a href="#" class="nav-link">Mais favoritadas</a>
+        <a href="#" class="nav-link">Curadoria do Bem</a>
+        <a href="#" class="nav-link">Marcas</a>
+        <a href="#" class="nav-link">Last Chance</a>
+        <a href="#" class="nav-link">Feminino</a>
+        <a href="#" class="nav-link">Masculino</a>
+        <a href="#" class="nav-link" data-active>Calçados</a>
+        <a href="#" class="nav-link">Acessórios</a>
+      </div>
+    </div>
+  </header>
+
+
+  <main id="main">
+
+    <!-- ─────────── BREADCRUMB + TÍTULO SUTIL ─────────── -->
+    <section class="container pdp-top">
+      <nav class="breadcrumb" aria-label="Caminho de navegação">
+        <a href="../home/index.html">Início</a>
+        <span class="breadcrumb-sep" aria-hidden="true">›</span>
+        <a href="#">Comprar</a>
+        <span class="breadcrumb-sep" aria-hidden="true">›</span>
+        <a href="../category/index.html">Calçados</a>
+        <span class="breadcrumb-sep" aria-hidden="true">›</span>
+        <a href="../category/index.html#tenis">Tênis</a>
+        <span class="breadcrumb-sep" aria-hidden="true">›</span>
+        <span aria-current="page">Adidas Stan Smith branco couro</span>
+      </nav>
+    </section>
+
+
+    <!-- ─────────── LAYOUT PRINCIPAL: GALERIA + PAINEL ─────────── -->
+    <section class="container">
+      <div class="pdp-layout">
+
+        <!-- ── Galeria (esquerda) ── -->
+        <section
+          class="gallery"
+          aria-roledescription="carousel"
+          aria-label="Galeria de fotos do produto"
+        >
+          <!-- Lista vertical de thumbs (5 fotos placeholder).
+               Cada thumb é um botão com aria-current="true" no slide ativo. -->
+          <ul class="gallery-thumbs" role="tablist" aria-label="Miniaturas de foto">
+            <li role="presentation">
+              <button
+                class="gallery-thumb"
+                type="button"
+                role="tab"
+                aria-current="true"
+                aria-label="Foto 1 de 5: vista frontal"
+                aria-controls="gallery-main-photo"
+                style="background-image: url('https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=400&auto=format&fit=crop');"
+              ></button>
+            </li>
+            <li role="presentation">
+              <button
+                class="gallery-thumb"
+                type="button"
+                role="tab"
+                aria-label="Foto 2 de 5: lateral direita"
+                aria-controls="gallery-main-photo"
+                style="background-image: url('https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=400&auto=format&fit=crop');"
+              ></button>
+            </li>
+            <li role="presentation">
+              <button
+                class="gallery-thumb"
+                type="button"
+                role="tab"
+                aria-label="Foto 3 de 5: solado"
+                aria-controls="gallery-main-photo"
+                style="background-image: url('https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&auto=format&fit=crop');"
+              ></button>
+            </li>
+            <li role="presentation">
+              <button
+                class="gallery-thumb"
+                type="button"
+                role="tab"
+                aria-label="Foto 4 de 5: detalhe do material"
+                aria-controls="gallery-main-photo"
+                style="background-image: url('https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&auto=format&fit=crop');"
+              ></button>
+            </li>
+            <li role="presentation">
+              <button
+                class="gallery-thumb"
+                type="button"
+                role="tab"
+                aria-label="Foto 5 de 5: usada em ambiente"
+                aria-controls="gallery-main-photo"
+                style="background-image: url('https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=400&auto=format&fit=crop');"
+              ></button>
+            </li>
+          </ul>
+
+          <!-- Foto principal -->
+          <div
+            id="gallery-main-photo"
+            class="gallery-main"
+            role="tabpanel"
+            aria-roledescription="slide"
+            aria-label="Foto 1 de 5: vista frontal"
+            style="background-image: url('https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=1200&auto=format&fit=crop');"
+          >
+            <span class="gallery-counter" aria-hidden="true">01 / 05</span>
+
+            <button class="gallery-arrow gallery-arrow--prev" type="button" aria-label="Foto anterior" disabled style="opacity:0.5; cursor:not-allowed;">‹</button>
+            <button class="gallery-arrow gallery-arrow--next" type="button" aria-label="Próxima foto">›</button>
+
+            <div class="gallery-dots" aria-hidden="true">
+              <span class="dot" aria-current="true"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+
+            <span class="gallery-zoom-hint" aria-hidden="true">⤢ clique para ampliar</span>
+          </div>
+        </section>
+
+
+        <!-- ── Painel de informação (direita, sticky) ── -->
+        <section class="info-panel" aria-labelledby="product-title">
+          <p class="brand-line">
+            <span aria-hidden="true">●</span>
+            <a href="#">Adidas</a>
+            <span aria-hidden="true" style="color: var(--color-line);">·</span>
+            <span>SKU 102934</span>
+          </p>
+
+          <!-- 1. Nome do produto -->
+          <h1 id="product-title" class="product-title">
+            Tênis Adidas Stan Smith branco couro
+          </h1>
+
+          <a class="category-chip" href="../category/index.html" aria-label="Ver todos os produtos da categoria Calçados › Tênis">
+            Calçados › Tênis
+          </a>
+
+          <!-- 2. Preço -->
+          <div class="price-block">
+            <span class="pdp-price-now" aria-label="Preço atual: 169 reais">R$ 169,00</span>
+            <span class="pdp-price-old" aria-label="Preço original: 449 reais">R$ 449,00</span>
+            <span class="pdp-discount-badge" aria-label="Desconto de 62 por cento">−62%</span>
+          </div>
+
+          <!-- Badges de estado (única peça) -->
+          <div class="state-badges" role="group" aria-label="Estado da peça">
+            <span class="state-badge state-badge--unique">★ Só essa! Última peça em estoque</span>
+          </div>
+
+          <!-- 3. Quantidade + Adicionar à sacola + Favoritar (na MESMA linha) -->
+          <div class="qty-cta-row">
+            <div class="qty-stepper" role="group" aria-label="Seletor de quantidade">
+              <button type="button" aria-label="Diminuir quantidade" disabled>−</button>
+              <input id="qty" type="number" value="1" min="1" max="1" aria-label="Quantidade selecionada" />
+              <button type="button" aria-label="Aumentar quantidade" disabled>+</button>
+            </div>
+            <button type="button" class="circulou-btn-primary cta-primary-pdp" aria-label="Adicionar Tênis Adidas Stan Smith à sacola">
+              Adicionar à sacola
+            </button>
+            <button type="button" class="cta-fav" aria-pressed="false" aria-label="Favoritar peça">♡</button>
+          </div>
+          <span class="qty-limit">máx. 1 por compra</span>
+
+          <!-- 4. Descrição (em prosa, antes das características) -->
+          <article class="description-inline" aria-labelledby="description-title">
+            <span class="eyebrow">Sobre essa peça</span>
+            <h2 id="description-title">Um clássico que atravessa décadas — e ainda tem fôlego pra muita estação.</h2>
+
+            <p>
+              Esse <strong>Stan Smith branco couro</strong> chegou ao Brechó da Lua já
+              com história. A dona usou em três eventos, percebeu que o tamanho não
+              ficou ideal e decidiu repassar. Antes de fotografar, nossa curadoria
+              higienizou o couro, lavou os cadarços e checou costura por costura.
+            </p>
+
+            <p>
+              O cabedal mantém o branco original com leve patina natural — exatamente
+              o que dá charme nos Stan Smith depois de algum uso. <strong>Solado
+              íntegro</strong>, sem desgaste de pisada. O detalhe verde clássico no
+              calcanhar segue impecável.
+            </p>
+
+            <p>
+              Combina com calça reta, vestido midi, jeans rasgado — peça curinga que
+              resolve a vida em qualquer composição. Por R$ 169 (de R$ 449), é o
+              preço mais justo desse modelo no marketplace hoje.
+            </p>
+          </article>
+
+          <!-- 5. Calcular frete -->
+          <section class="shipping-block" aria-labelledby="shipping-title">
+            <h2 id="shipping-title" class="eyebrow">Calcular frete e prazo</h2>
+            <div class="cep-row">
+              <input
+                type="text"
+                inputmode="numeric"
+                placeholder="00000-000"
+                aria-label="Digite seu CEP"
+                value="30130-100"
+              />
+              <button type="button" aria-label="Calcular frete para o CEP informado">
+                Calcular
+              </button>
+            </div>
+            <a href="https://buscacepinter.correios.com.br/" class="cep-help" target="_blank" rel="noopener">
+              Não sei meu CEP →
+            </a>
+            <!-- Resultado mock — apareceria após o usuário clicar em "Calcular" -->
+            <div class="shipping-result" role="status" aria-live="polite">
+              <span class="ship-method">Sedex</span>
+              <span class="ship-eta">3 a 5 dias úteis</span>
+              <span class="ship-price">R$ 18,90</span>
+            </div>
+            <p class="shipping-disclaimer">
+              Devolução grátis em até 7 dias se a peça não te servir.
+            </p>
+          </section>
+
+          <!-- 6. Vendido por (card compacto) -->
+          <aside class="seller-compact" aria-labelledby="seller-compact-title">
+            <span
+              class="seller-compact-logo"
+              aria-hidden="true"
+              style="background-image: url('https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=200&auto=format&fit=crop');"
+            ></span>
+            <div class="seller-compact-info">
+              <p class="eyebrow">Vendido por</p>
+              <h3 id="seller-compact-title">Brechó da Lua</h3>
+              <div class="seller-compact-stats">
+                <span class="seller-stars" aria-hidden="true">★★★★★</span>
+                <strong style="color: var(--color-cedro);">4,9</strong>
+                <span style="color: var(--color-mute);">·</span>
+                <span>1.247 peças vendidas</span>
+                <span style="color: var(--color-mute);">·</span>
+                <span>Belo Horizonte/MG</span>
+              </div>
+            </div>
+            <a href="#" class="circulou-btn-ghost seller-compact-cta">Ver loja →</a>
+          </aside>
+
+          <!-- 7. Características do produto (Geral / Medidas / Cuidados) -->
+          <section class="attrs-inline" aria-labelledby="attrs-inline-title">
+            <h2 id="attrs-inline-title" class="attrs-inline-eyebrow">Características da peça</h2>
+
+            <div class="attrs-inline-grid">
+              <!-- Geral -->
+              <div class="attrs-group">
+                <h3>Geral</h3>
+                <dl class="attrs-list">
+                  <dt>Condição</dt>
+                  <dd>Semi-nova</dd>
+
+                  <dt>Tamanho</dt>
+                  <dd><code>39</code></dd>
+
+                  <dt>Marca</dt>
+                  <dd>Adidas</dd>
+
+                  <dt>Cor predominante</dt>
+                  <dd>Branco</dd>
+
+                  <dt>Material</dt>
+                  <dd>Couro liso</dd>
+
+                  <dt>Composição</dt>
+                  <dd>100% couro bovino</dd>
+
+                  <dt>Gênero</dt>
+                  <dd>Unissex</dd>
+
+                  <dt>Modelo</dt>
+                  <dd>Stan Smith</dd>
+
+                  <dt>Coleção</dt>
+                  <dd>Originals · clássica</dd>
+                </dl>
+              </div>
+
+              <!-- Medidas -->
+              <div class="attrs-group attrs-group--measures">
+                <h3>Medidas</h3>
+                <dl class="attrs-list">
+                  <dt>Tamanho BR</dt>
+                  <dd><code>39</code></dd>
+
+                  <dt>Tamanho US</dt>
+                  <dd><code>7,5</code></dd>
+
+                  <dt>Tamanho EU</dt>
+                  <dd><code>40</code></dd>
+
+                  <dt>Comprimento da palmilha</dt>
+                  <dd>25,5 cm</dd>
+
+                  <dt>Largura interna</dt>
+                  <dd>9,5 cm</dd>
+
+                  <dt>Altura do solado</dt>
+                  <dd>2,8 cm</dd>
+
+                  <dt>Cabedal</dt>
+                  <dd>Cano baixo</dd>
+                </dl>
+              </div>
+
+              <!-- Cuidados (full-width) -->
+              <div class="attrs-group attrs-group--care">
+                <h3>Cuidados</h3>
+                <dl class="attrs-list">
+                  <dt>Lavagem</dt>
+                  <dd>Apenas pano úmido</dd>
+
+                  <dt>Secagem</dt>
+                  <dd>Sombra, longe de calor</dd>
+
+                  <dt>Hidratação</dt>
+                  <dd>Creme neutro de couro</dd>
+
+                  <dt>Não pode</dt>
+                  <dd>Imersão, alvejante, máquina</dd>
+
+                  <dt>Armazenamento</dt>
+                  <dd>Forma neutra ou papel</dd>
+                </dl>
+              </div>
+            </div>
+          </section>
+        </section>
+
+      </div>
+    </section>
+
+
+    <!-- (As antigas seções <attrs-section>, <description-section>, <seller-section>
+         foram absorvidas pelo .info-panel acima — ver itens 4, 5, 6 e 7. ) -->
+
+
+    <!-- ─────────── VOCÊ TAMBÉM VAI GOSTAR (RAIL) ─────────── -->
+    <!--
+      MOCK :: LOFN-G34 — endpoint /products/:productId/related não existe.
+      Frontend deve cruzar `categoryId` + faixa de preço cliente-side por ora.
+    -->
+    <section class="related-section">
+      <div class="container">
+        <header class="related-header">
+          <div>
+            <span class="circulou-tag">○ Você também vai gostar</span>
+            <h2 style="font-size: var(--text-display-md); margin-top: 0.5rem;">
+              Outros tênis pra completar a vibe
+            </h2>
+            <p style="color: var(--color-mute); margin-top: 0.5rem; max-width: 50ch;">
+              Garimpamos peças parecidas em estilo e faixa de preço.
+            </p>
+          </div>
+          <a href="../category/index.html" class="circulou-btn-ghost">Ver toda categoria →</a>
+        </header>
+
+        <div class="circulou-rail" role="list" aria-label="Carrossel de produtos relacionados">
+
+          <article class="product-card circulou-card related-card" role="listitem">
+            <div class="img" style="background-image: url('https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop');"></div>
+            <div class="body">
+              <span class="brand-label">Nike</span>
+              <span class="product-name">Air Max 90 vermelho retrô</span>
+              <span style="font-size: 0.78rem; color: var(--color-mute);">Tam. 39 · semi-novo</span>
+              <div class="price-row">
+                <span class="price-now">R$ 219,00</span>
+                <span class="price-old">R$ 629,00</span>
+              </div>
+              <span class="product-store">Brechó Vintage SP</span>
+            </div>
+          </article>
+
+          <article class="product-card circulou-card related-card" role="listitem">
+            <div class="img" style="background-image: url('https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=600&auto=format&fit=crop');"></div>
+            <div class="body">
+              <span class="brand-label">Vans</span>
+              <span class="product-name">Old Skool preto, lona</span>
+              <span style="font-size: 0.78rem; color: var(--color-mute);">Tam. 40 · ótimo estado</span>
+              <div class="price-row">
+                <span class="price-now">R$ 119,00</span>
+                <span class="price-old">R$ 369,00</span>
+              </div>
+              <span class="product-store">Sebo da Moda</span>
+            </div>
+          </article>
+
+          <article class="product-card circulou-card related-card" role="listitem">
+            <div class="img" style="background-image: url('https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600&auto=format&fit=crop');"></div>
+            <div class="body">
+              <span class="brand-label">Converse</span>
+              <span class="product-name">Chuck Taylor amarelo mostarda</span>
+              <span style="font-size: 0.78rem; color: var(--color-mute);">Tam. 38 · ótimo estado</span>
+              <div class="price-row">
+                <span class="price-now">R$ 99,00</span>
+                <span class="price-old">R$ 219,00</span>
+              </div>
+              <span class="product-store">Garimpo da Lia</span>
+            </div>
+          </article>
+
+          <article class="product-card circulou-card related-card" role="listitem">
+            <div class="img" style="background-image: url('https://images.unsplash.com/photo-1539185441755-769473a23570?w=600&auto=format&fit=crop');"></div>
+            <div class="body">
+              <span class="brand-label">Reebok</span>
+              <span class="product-name">Classic Leather areia</span>
+              <span style="font-size: 0.78rem; color: var(--color-mute);">Tam. 41 · semi-novo</span>
+              <div class="price-row">
+                <span class="price-now">R$ 149,00</span>
+                <span class="price-old">R$ 249,00</span>
+              </div>
+              <span class="product-store">Sebo da Moda</span>
+            </div>
+          </article>
+
+          <article class="product-card circulou-card related-card" role="listitem">
+            <div class="img" style="background-image: url('https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=600&auto=format&fit=crop');"></div>
+            <div class="body">
+              <span class="brand-label">New Balance</span>
+              <span class="product-name">990 v5 cinza grafite</span>
+              <span style="font-size: 0.78rem; color: var(--color-mute);">Tam. 42 · pouco uso</span>
+              <div class="price-row">
+                <span class="price-now">R$ 459,00</span>
+                <span class="price-old">R$ 1.299,00</span>
+              </div>
+              <span class="product-store">Atelier do Brechó</span>
+            </div>
+          </article>
+
+          <article class="product-card circulou-card related-card" role="listitem">
+            <div class="img" style="background-image: url('https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&auto=format&fit=crop');"></div>
+            <div class="body">
+              <span class="brand-label">Schutz</span>
+              <span class="product-name">Sandália plataforma cobre</span>
+              <span style="font-size: 0.78rem; color: var(--color-mute);">Tam. 36 · novo c/ etiqueta</span>
+              <div class="price-row">
+                <span class="price-now">R$ 189,00</span>
+                <span class="price-old">R$ 549,00</span>
+              </div>
+              <span class="product-store">Brechó Vintage SP</span>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+
+  <!-- ─────────── FOOTER (idêntico) ─────────── -->
+  <footer class="site-footer">
+    <div class="container py-section-tight">
+      <div class="grid-4" style="gap: 2rem; margin-bottom: 3rem;">
+        <div>
+          <span style="font-family: var(--font-display); color: var(--color-ambar); font-size: 1.4rem;">Circulou</span>
+          <p style="color: var(--color-areia); font-size: 0.9rem; margin-top: 0.75rem; max-width: 28ch;">
+            Brechó online que conecta moda circular, propósito e gente que se importa.
+          </p>
+          <div class="flex gap-4" style="margin-top: 1.5rem;" aria-label="Redes sociais">
+            <a href="#" class="footer-link" aria-label="Instagram">Instagram</a>
+            <a href="#" class="footer-link" aria-label="TikTok">TikTok</a>
+            <a href="#" class="footer-link" aria-label="Pinterest">Pinterest</a>
+          </div>
+        </div>
+        <nav>
+          <h3 style="color: var(--color-cru); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; font-family: var(--font-mono);">Úteis</h3>
+          <ul style="list-style: none; padding: 0; margin-top: 1rem; display: flex; flex-direction: column; gap: 0.6rem;">
+            <li><a href="#" class="footer-link">Home</a></li>
+            <li><a href="#" class="footer-link">Quero vender</a></li>
+            <li><a href="#" class="footer-link">Curadoria do Bem</a></li>
+            <li><a href="#" class="footer-link">ONGs parceiras</a></li>
+          </ul>
+        </nav>
+        <nav>
+          <h3 style="color: var(--color-cru); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; font-family: var(--font-mono);">Meu Perfil</h3>
+          <ul style="list-style: none; padding: 0; margin-top: 1rem; display: flex; flex-direction: column; gap: 0.6rem;">
+            <li><a href="#" class="footer-link">Meus pedidos</a></li>
+            <li><a href="#" class="footer-link">Minhas sacolas</a></li>
+            <li><a href="#" class="footer-link">Favoritos</a></li>
+          </ul>
+        </nav>
+        <nav>
+          <h3 style="color: var(--color-cru); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; font-family: var(--font-mono);">Ajuda</h3>
+          <ul style="list-style: none; padding: 0; margin-top: 1rem; display: flex; flex-direction: column; gap: 0.6rem;">
+            <li><a href="#" class="footer-link">Central de ajuda</a></li>
+            <li><a href="#" class="footer-link">Frete e entrega</a></li>
+            <li><a href="#" class="footer-link">Fale conosco</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      <div style="border-top: 1px solid rgba(245,236,229,0.1); padding-top: 2rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+        <p style="color: var(--color-mute); font-size: 0.8rem;">
+          © 2026 Circulou Brechó do Juntos · CNPJ 00.000.000/0001-00 · contato@circulou.com.br
+        </p>
+        <p style="color: var(--color-mute); font-size: 0.8rem;">
+          Pagamentos: Visa · Master · Elo · PIX · Boleto
+        </p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

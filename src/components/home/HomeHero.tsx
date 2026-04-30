@@ -95,10 +95,12 @@ export const HomeHero = () => {
             </span>
             <h1
               id="hero-title"
-              className="mt-6 mb-6 max-w-[36ch]"
+              className="max-w-[36ch]"
               style={{
                 fontSize: 'var(--text-display-xl)',
                 color: 'var(--color-cru)',
+                marginTop: '1.5rem',
+                marginBottom: '1.5rem',
               }}
             >
               Moda sustentável não é o futuro. É o presente.

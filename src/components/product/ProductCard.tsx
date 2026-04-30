@@ -9,9 +9,11 @@ const PLACEHOLDER =
 interface ProductCardProps {
   product: ProductInfo;
   store?: StoreInfo;
+  showStore?: boolean;
+  storeName?: string;
 }
 
-export const ProductCard = ({ product, store }: ProductCardProps) => {
+export const ProductCard = ({ product, store, showStore = false, storeName }: ProductCardProps) => {
   const navigate = useNavigate();
   const storeSlug = store?.slug ?? '';
   const productHref = storeSlug
@@ -91,6 +93,21 @@ export const ProductCard = ({ product, store }: ProductCardProps) => {
           >
             {store.name}
           </Link>
+        ) : null}
+        {showStore && storeName ? (
+          <span
+            className="flex items-center gap-1.5 mt-1 pt-1.5"
+            style={{
+              fontSize: '0.75rem',
+              color: 'var(--color-mute)',
+              borderTop: '1px dashed var(--color-line)',
+            }}
+          >
+            <span aria-hidden="true" style={{ color: 'var(--color-oliva)' }}>
+              ○
+            </span>
+            {storeName}
+          </span>
         ) : null}
       </div>
     </article>
